@@ -1,0 +1,5 @@
+# Request
+uint8 on # 0:off, 1:on
+---
+# Response
+int32 result

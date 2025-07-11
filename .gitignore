@@ -1,0 +1,26 @@
+# Build artifacts
+build/
+install/
+log/
+
+# Python compiled files
+*.pyc
+__pycache__/
+
+# C++ build artifacts
+*.o
+*.so
+*.a
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+
+# IDE specific files (e.g., VS Code)
+.vscode/
+
+# Editor backup files
+*~
+# Other temporary files
+*.bak
+*.swp
