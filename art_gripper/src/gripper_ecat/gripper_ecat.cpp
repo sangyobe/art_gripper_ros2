@@ -17,8 +17,8 @@ GripperEcat::GripperEcat()
     this->declare_parameter<int>("status_publish_rate_hz", 100);
     int publish_rate_hz = this->get_parameter("status_publish_rate_hz").as_int();
 
-    _subscriber = this->create_subscription<std_msgs::msg::String>(
-        "greeting", 10, std::bind(&GripperEcat::OnMessage, this, _1));
+    _gripper_control_subscriber = this->create_subscription<art_gripper_interfaces::msg::GripperControl>(
+        "GripperControl", 10, std::bind(&GripperEcat::OnGripperControl, this, _1));
 
     _motor_on_server = this->create_service<art_gripper_interfaces::srv::MotorOn>(
         "MotorOn", std::bind(&GripperEcat::OnMotorOn, this, _1, _2));
@@ -26,7 +26,7 @@ GripperEcat::GripperEcat()
     _reset_abs_encoder_server = this->create_service<art_gripper_interfaces::srv::ResetAbsEncoder>(
         "ResetAbsEncoder", std::bind(&GripperEcat::OnResetAbsEncoder, this, _1, _2));
 
-    _target_width_server = this->create_service<art_gripper_interfaces::srv::SetTargetWidth>(
+    _set_target_width_server = this->create_service<art_gripper_interfaces::srv::SetTargetWidth>(
         "SetTargetWidth", std::bind(&GripperEcat::OnSetTargetWidth, this, _1, _2));
 
     _set_target_pose_server = this->create_service<art_gripper_interfaces::srv::SetTargetPose>(
@@ -40,6 +40,9 @@ GripperEcat::GripperEcat()
 
     _reset_friction_model_server = this->create_service<art_gripper_interfaces::srv::ResetFrictionModel>(
         "ResetFrictionModel", std::bind(&GripperEcat::OnResetFrictionModel, this, _1, _2));
+
+    _gripper_info_server = this->create_service<art_gripper_interfaces::srv::GetGripperInfo>(
+        "GetGripperInfo", std::bind(&GripperEcat::OnGetGripperInfo, this, _1, _2));
 
     _status_publisher = this->create_publisher<art_gripper_interfaces::msg::GripperStatus>("GripperStatus", 10);
 
@@ -55,9 +58,20 @@ GripperEcat::~GripperEcat()
     }
 }
 
-void GripperEcat::OnMessage(const std_msgs::msg::String::SharedPtr msg) const
+void GripperEcat::OnGripperControl(const art_gripper_interfaces::msg::GripperControl::SharedPtr msg)
 {
-    RCLCPP_INFO(this->get_logger(), "msg: %s", msg->data.c_str());
+    std::lock_guard<std::mutex> lock(_robot_data->mtx);
+    RCLCPP_INFO(this->get_logger(), "Received GripperControl: control_word=%d, finger_target_width=%d", msg->control_word, msg->finger_target_width);
+    _robot_data->control.control_word = msg->control_word;
+    _robot_data->control.finger_target_width = msg->finger_target_width;
+    _robot_data->control.finger_target_pose = msg->finger_target_pose;
+    _robot_data->control.finger_width_speed = msg->finger_width_speed;
+    _robot_data->control.finger_pose_speed = msg->finger_pose_speed;
+    _robot_data->control.gripping_force = msg->gripping_force;
+    _robot_data->control.contact_detection_sesitivity = msg->contact_detection_sesitivity;
+    for (int i = 0; i < 4; ++i) {
+        _robot_data->control.target_current[i] = msg->target_current[i];
+    }
 }
 
 void GripperEcat::OnMotorOn(
@@ -130,6 +144,16 @@ void GripperEcat::OnResetFrictionModel(
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "ResetFrictionModel");
     response->result = 0;
+}
+
+void GripperEcat::OnGetGripperInfo(
+    [[maybe_unused]] const std::shared_ptr<art_gripper_interfaces::srv::GetGripperInfo::Request> request,
+    std::shared_ptr<art_gripper_interfaces::srv::GetGripperInfo::Response> response)
+{
+    RCLCPP_INFO(this->get_logger(), "GetGripperInfo service called.");
+    response->info.name = "ART Gripper";
+    response->info.version = "1.0.0";
+    response->info.description = "HMC ART Gripper control system.";
 }
 
 void GripperEcat::StatusPublishThread()

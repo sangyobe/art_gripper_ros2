@@ -6,9 +6,9 @@ using namespace std::chrono_literals;
 using std::placeholders::_1;
 
 GripperClient::GripperClient()
-: Node("gripper_client"), _count(0)
+: Node("gripper_client"), _working_count(0)
 {
-    _publisher = this->create_publisher<std_msgs::msg::String>("greeting", 10);
+    _gripper_control_publisher = this->create_publisher<art_gripper_interfaces::msg::GripperControl>("GripperControl", 10);
     _timer = this->create_wall_timer(1000ms, std::bind(&GripperClient::OnTimer, this));
     _motor_on_client = this->create_client<art_gripper_interfaces::srv::MotorOn>("MotorOn");
     _reset_abs_encoder_client = this->create_client<art_gripper_interfaces::srv::ResetAbsEncoder>("ResetAbsEncoder");
@@ -17,22 +17,19 @@ GripperClient::GripperClient()
     _set_target_current_client = this->create_client<art_gripper_interfaces::srv::SetTargetCurrent>("SetTargetCurrent");
     _set_target_client = this->create_client<art_gripper_interfaces::srv::SetTarget>("SetTarget");
     _reset_friction_model_client = this->create_client<art_gripper_interfaces::srv::ResetFrictionModel>("ResetFrictionModel");
+    _gripper_info_client = this->create_client<art_gripper_interfaces::srv::GetGripperInfo>("GetGripperInfo");
 }
 
 void GripperClient::OnTimer()
 {
-    auto msg = std_msgs::msg::String();
-    msg.data = "Hello " + std::to_string(_count++);
-    RCLCPP_INFO(this->get_logger(), "pub: %s", msg.data.c_str());
-    _publisher->publish(msg);
-
-    if (_count % 2 == 0) {
+    if (_working_count % 2 == 0) {
         this->CallMotorOn(true);
     } else {
         this->CallMotorOn(false);
     }
 
-    if (_count % 5 == 0) {
+    if (_working_count % 5 == 0) {
+        if (_working_count % 5 == 0) {
         this->CallResetAbsEncoder();
         this->CallSetTargetWidth(50, 100, 50, 80);
         this->CallSetTargetPose(90, 120);
@@ -40,7 +37,28 @@ void GripperClient::OnTimer()
         this->CallSetTargetCurrent(current_array);
         this->CallSetTarget(25, 45, 75, 90, 20, 60);
         this->CallResetFrictionModel();
+        this->CallGetGripperInfo();
     }
+    }
+
+    this->PublishGripperControl();
+
+    _working_count++;
+}
+
+void GripperClient::PublishGripperControl()
+{
+    auto msg = art_gripper_interfaces::msg::GripperControl();
+    msg.control_word = 1;
+    msg.finger_target_width = 50;
+    msg.finger_target_pose = 90;
+    msg.finger_width_speed = 100;
+    msg.finger_pose_speed = 150;
+    msg.gripping_force = 30;
+    msg.contact_detection_sesitivity = 80;
+    msg.target_current = {100, 200, 300, 400};
+    _gripper_control_publisher->publish(msg);
+    RCLCPP_INFO(this->get_logger(), "Publishing GripperControl message.");
 }
 
 void GripperClient::CallMotorOn(const bool on)
@@ -252,5 +270,33 @@ void GripperClient::OnResetFrictionModelResponse(rclcpp::Client<art_gripper_inte
         RCLCPP_INFO(this->get_logger(), "service call result: %d", result->result);
     } catch (const std::exception &e) {
         RCLCPP_ERROR(this->get_logger(), "Failed to call service ResetFrictionModel: %s", e.what());
+    }
+}
+
+void GripperClient::CallGetGripperInfo()
+{
+    RCLCPP_INFO(this->get_logger(), "CallGetGripperInfo()...");
+    if (!_gripper_info_client->wait_for_service(1s)) {
+        if (!rclcpp::ok()) {
+            RCLCPP_ERROR(this->get_logger(), "client interrupted while waiting for service to appear.");
+            return;
+        }
+        RCLCPP_INFO(this->get_logger(), "waiting for service to appear...");
+        return;
+    }
+
+    auto request = std::make_shared<art_gripper_interfaces::srv::GetGripperInfo::Request>();
+
+    _gripper_info_client->async_send_request(
+        request, std::bind(&GripperClient::OnGetGripperInfoResponse, this, _1));
+}
+
+void GripperClient::OnGetGripperInfoResponse(rclcpp::Client<art_gripper_interfaces::srv::GetGripperInfo>::SharedFuture future)
+{
+    try {
+        auto result = future.get();
+        RCLCPP_INFO(this->get_logger(), "GetGripperInfo service call result: Name=%s, Version=%s, Description=%s", result->info.name.c_str(), result->info.version.c_str(), result->info.description.c_str());
+    } catch (const std::exception &e) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to call service GetGripperInfo: %s", e.what());
     }
 }
