@@ -23,6 +23,24 @@ GripperEcat::GripperEcat()
     _motor_on_server = this->create_service<art_gripper_interfaces::srv::MotorOn>(
         "MotorOn", std::bind(&GripperEcat::OnMotorOn, this, _1, _2));
 
+    _reset_abs_encoder_server = this->create_service<art_gripper_interfaces::srv::ResetAbsEncoder>(
+        "ResetAbsEncoder", std::bind(&GripperEcat::OnResetAbsEncoder, this, _1, _2));
+
+    _target_width_server = this->create_service<art_gripper_interfaces::srv::TargetWidth>(
+        "TargetWidth", std::bind(&GripperEcat::OnTargetWidth, this, _1, _2));
+
+    _target_pose_server = this->create_service<art_gripper_interfaces::srv::TargetPose>(
+        "TargetPose", std::bind(&GripperEcat::OnTargetPose, this, _1, _2));
+
+    _set_target_current_server = this->create_service<art_gripper_interfaces::srv::SetTargetCurrent>(
+        "SetTargetCurrent", std::bind(&GripperEcat::OnSetTargetCurrent, this, _1, _2));
+
+    _set_target_server = this->create_service<art_gripper_interfaces::srv::SetTarget>(
+        "SetTarget", std::bind(&GripperEcat::OnSetTarget, this, _1, _2));
+
+    _reset_friction_model_server = this->create_service<art_gripper_interfaces::srv::ResetFrictionModel>(
+        "ResetFrictionModel", std::bind(&GripperEcat::OnResetFrictionModel, this, _1, _2));
+
     _status_publisher = this->create_publisher<art_gripper_interfaces::msg::GripperStatus>("GripperStatus", 10);
 
     _status_thread = std::thread(&GripperEcat::StatusPublishThread, this);
@@ -55,6 +73,62 @@ void GripperEcat::OnMotorOn(
         RCLCPP_INFO(this->get_logger(), "motor off");
         _robot_data->status.gripper_status = 0; // Ready for example
     }
+    response->result = 0;
+}
+
+void GripperEcat::OnResetAbsEncoder(
+    [[maybe_unused]] const std::shared_ptr<art_gripper_interfaces::srv::ResetAbsEncoder::Request> request,
+    std::shared_ptr<art_gripper_interfaces::srv::ResetAbsEncoder::Response> response)
+{
+    std::lock_guard<std::mutex> lock(_robot_data->mtx);
+    RCLCPP_INFO(this->get_logger(), "reset abs encoder");
+    // Example of modifying shared data
+    _robot_data->status.gripper_status = 2; // In-motion for example
+    response->result = 0;
+}
+
+void GripperEcat::OnTargetWidth(
+    const std::shared_ptr<art_gripper_interfaces::srv::TargetWidth::Request> request,
+    std::shared_ptr<art_gripper_interfaces::srv::TargetWidth::Response> response)
+{
+    std::lock_guard<std::mutex> lock(_robot_data->mtx);
+    RCLCPP_INFO(this->get_logger(), "TargetWidth: %d, %d, %d, %d", request->finger_target_width, request->finger_width_speed, request->gripping_force, request->contact_detection_sesitivity);
+    response->result = 0;
+}
+
+void GripperEcat::OnTargetPose(
+    const std::shared_ptr<art_gripper_interfaces::srv::TargetPose::Request> request,
+    std::shared_ptr<art_gripper_interfaces::srv::TargetPose::Response> response)
+{
+    std::lock_guard<std::mutex> lock(_robot_data->mtx);
+    RCLCPP_INFO(this->get_logger(), "TargetPose: %d, %d", request->finger_target_pose, request->finger_pose_speed);
+    response->result = 0;
+}
+
+void GripperEcat::OnSetTargetCurrent(
+    const std::shared_ptr<art_gripper_interfaces::srv::SetTargetCurrent::Request> request,
+    std::shared_ptr<art_gripper_interfaces::srv::SetTargetCurrent::Response> response)
+{
+    std::lock_guard<std::mutex> lock(_robot_data->mtx);
+    RCLCPP_INFO(this->get_logger(), "SetTargetCurrent: %d, %d, %d, %d", request->target_current[0], request->target_current[1], request->target_current[2], request->target_current[3]);
+    response->result = 0;
+}
+
+void GripperEcat::OnSetTarget(
+    const std::shared_ptr<art_gripper_interfaces::srv::SetTarget::Request> request,
+    std::shared_ptr<art_gripper_interfaces::srv::SetTarget::Response> response)
+{
+    std::lock_guard<std::mutex> lock(_robot_data->mtx);
+    RCLCPP_INFO(this->get_logger(), "SetTarget: %d, %d, %d, %d, %d, %d", request->finger_target_width, request->finger_target_pose, request->finger_width_speed, request->finger_pose_speed, request->gripping_force, request->contact_detection_sesitivity);
+    response->result = 0;
+}
+
+void GripperEcat::OnResetFrictionModel(
+    [[maybe_unused]] const std::shared_ptr<art_gripper_interfaces::srv::ResetFrictionModel::Request> request,
+    std::shared_ptr<art_gripper_interfaces::srv::ResetFrictionModel::Response> response)
+{
+    std::lock_guard<std::mutex> lock(_robot_data->mtx);
+    RCLCPP_INFO(this->get_logger(), "ResetFrictionModel");
     response->result = 0;
 }
 

@@ -2,13 +2,19 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from art_gripper_interfaces.msg import GripperControl, GripperStatus
-from art_gripper_interfaces.srv import MotorOn
+from art_gripper_interfaces.srv import MotorOn, ResetAbsEncoder, TargetWidth, TargetPose, SetTargetCurrent, SetTarget, ResetFrictionModel
 
 class GripperClient(Node):
     def __init__(self):
         super().__init__('gripper_client_py')
         self.publisher = self.create_publisher(String, 'greeting', 10)
         self.motor_on_client = self.create_client(MotorOn, 'MotorOn')
+        self.reset_abs_encoder_client = self.create_client(ResetAbsEncoder, 'ResetAbsEncoder')
+        self.target_width_client = self.create_client(TargetWidth, 'TargetWidth')
+        self.target_pose_client = self.create_client(TargetPose, 'TargetPose')
+        self.set_target_current_client = self.create_client(SetTargetCurrent, 'SetTargetCurrent')
+        self.set_target_client = self.create_client(SetTarget, 'SetTarget')
+        self.reset_friction_model_client = self.create_client(ResetFrictionModel, 'ResetFrictionModel')
         timer_period = 1.0
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.count = 0
@@ -20,17 +26,22 @@ class GripperClient(Node):
         self.get_logger().info(f'pub: {msg.data}')
         self.count += 1
 
-        # if self.count % 2 == 0:
-        #     self.call_moount % 2 == 0:
-        #     self.call_motor_on(True)
-        # else:
-        #     self.tor_on(True)
-        # else:
-        #     self.call_motor_on(False)
+        if self.count % 2 == 0:
+            self.call_motor_on(True)
+        else:
+            self.call_motor_on(False)
+
+        if self.count % 5 == 0:
+            self.call_reset_abs_encoder()
+            self.call_target_width(50, 100, 50, 80)
+            self.call_target_pose(90, 120)
+            self.call_set_target_current([100, 200, 300, 400])
+            self.call_set_target(25, 45, 75, 90, 20, 60)
+            self.call_reset_friction_model()
 
     def call_motor_on(self, on):
         while not self.motor_on_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('service not available, waiting again...')
+            self.get_logger().info('MotorOn service not available, waiting again...')
 
         request = MotorOn.Request()
         request.on = on
@@ -40,9 +51,112 @@ class GripperClient(Node):
     def motor_on_callback(self, future):
         try:
             response = future.result()
-            self.get_logger().info(f'service call result: {response.result}')
+            self.get_logger().info(f'MotorOn service call result: {response.result}')
         except Exception as e:
-            self.get_logger().error(f'service call failed: {e}')
+            self.get_logger().error(f'MotorOn service call failed: {e}')
+
+    def call_reset_abs_encoder(self):
+        while not self.reset_abs_encoder_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('ResetAbsEncoder service not available, waiting again...')
+
+        request = ResetAbsEncoder.Request()
+        self.future = self.reset_abs_encoder_client.call_async(request)
+        self.future.add_done_callback(self.reset_abs_encoder_callback)
+
+    def reset_abs_encoder_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'ResetAbsEncoder service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'ResetAbsEncoder service call failed: {e}')
+
+    def call_target_width(self, finger_target_width, finger_width_speed, gripping_force, contact_detection_sesitivity):
+        while not self.target_width_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('TargetWidth service not available, waiting again...')
+
+        request = TargetWidth.Request()
+        request.finger_target_width = finger_target_width
+        request.finger_width_speed = finger_width_speed
+        request.gripping_force = gripping_force
+        request.contact_detection_sesitivity = contact_detection_sesitivity
+        self.future = self.target_width_client.call_async(request)
+        self.future.add_done_callback(self.target_width_callback)
+
+    def target_width_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'TargetWidth service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'TargetWidth service call failed: {e}')
+
+    def call_target_pose(self, finger_target_pose, finger_pose_speed):
+        while not self.target_pose_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('TargetPose service not available, waiting again...')
+
+        request = TargetPose.Request()
+        request.finger_target_pose = finger_target_pose
+        request.finger_pose_speed = finger_pose_speed
+        self.future = self.target_pose_client.call_async(request)
+        self.future.add_done_callback(self.target_pose_callback)
+
+    def target_pose_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'TargetPose service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'TargetPose service call failed: {e}')
+
+    def call_set_target_current(self, target_current):
+        while not self.set_target_current_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('SetTargetCurrent service not available, waiting again...')
+
+        request = SetTargetCurrent.Request()
+        request.target_current = target_current
+        self.future = self.set_target_current_client.call_async(request)
+        self.future.add_done_callback(self.set_target_current_callback)
+
+    def set_target_current_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'SetTargetCurrent service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'SetTargetCurrent service call failed: {e}')
+
+    def call_set_target(self, finger_target_width, finger_target_pose, finger_width_speed, finger_pose_speed, gripping_force, contact_detection_sesitivity):
+        while not self.set_target_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('SetTarget service not available, waiting again...')
+
+        request = SetTarget.Request()
+        request.finger_target_width = finger_target_width
+        request.finger_target_pose = finger_target_pose
+        request.finger_width_speed = finger_width_speed
+        request.finger_pose_speed = finger_pose_speed
+        request.gripping_force = gripping_force
+        request.contact_detection_sesitivity = contact_detection_sesitivity
+        self.future = self.set_target_client.call_async(request)
+        self.future.add_done_callback(self.set_target_callback)
+
+    def set_target_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'SetTarget service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'SetTarget service call failed: {e}')
+
+    def call_reset_friction_model(self):
+        while not self.reset_friction_model_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('ResetFrictionModel service not available, waiting again...')
+
+        request = ResetFrictionModel.Request()
+        self.future = self.reset_friction_model_client.call_async(request)
+        self.future.add_done_callback(self.reset_friction_model_callback)
+
+    def reset_friction_model_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'ResetFrictionModel service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'ResetFrictionModel service call failed: {e}')
 
 def main(args=None):
     rclpy.init(args=args)

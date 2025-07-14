@@ -19,6 +19,12 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/GripperControl.msg"
   "msg/GripperStatus.msg"
   "srv/MotorOn.srv"
+  "srv/ResetAbsEncoder.srv"
+  "srv/TargetWidth.srv"
+  "srv/TargetPose.srv"
+  "srv/SetTargetCurrent.srv"
+  "srv/SetTarget.srv"
+  "srv/ResetFrictionModel.srv"
 )
 
 ament_export_dependencies(rosidl_default_runtime)
