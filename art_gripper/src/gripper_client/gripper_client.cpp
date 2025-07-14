@@ -12,8 +12,8 @@ GripperClient::GripperClient()
     _timer = this->create_wall_timer(1000ms, std::bind(&GripperClient::OnTimer, this));
     _motor_on_client = this->create_client<art_gripper_interfaces::srv::MotorOn>("MotorOn");
     _reset_abs_encoder_client = this->create_client<art_gripper_interfaces::srv::ResetAbsEncoder>("ResetAbsEncoder");
-    _target_width_client = this->create_client<art_gripper_interfaces::srv::TargetWidth>("TargetWidth");
-    _target_pose_client = this->create_client<art_gripper_interfaces::srv::TargetPose>("TargetPose");
+    _set_target_width_client = this->create_client<art_gripper_interfaces::srv::SetTargetWidth>("SetTargetWidth");
+    _set_target_pose_client = this->create_client<art_gripper_interfaces::srv::SetTargetPose>("SetTargetPose");
     _set_target_current_client = this->create_client<art_gripper_interfaces::srv::SetTargetCurrent>("SetTargetCurrent");
     _set_target_client = this->create_client<art_gripper_interfaces::srv::SetTarget>("SetTarget");
     _reset_friction_model_client = this->create_client<art_gripper_interfaces::srv::ResetFrictionModel>("ResetFrictionModel");
@@ -34,8 +34,8 @@ void GripperClient::OnTimer()
 
     if (_count % 5 == 0) {
         this->CallResetAbsEncoder();
-        this->CallTargetWidth(50, 100, 50, 80);
-        this->CallTargetPose(90, 120);
+        this->CallSetTargetWidth(50, 100, 50, 80);
+        this->CallSetTargetPose(90, 120);
         int16_t current_array[4] = {100, 200, 300, 400};
         this->CallSetTargetCurrent(current_array);
         this->CallSetTarget(25, 45, 75, 90, 20, 60);
@@ -100,10 +100,10 @@ void GripperClient::OnResetAbsEncoderResponse(rclcpp::Client<art_gripper_interfa
     }
 }
 
-void GripperClient::CallTargetWidth(uint8_t finger_target_width, uint8_t finger_width_speed, uint8_t gripping_force, uint8_t contact_detection_sesitivity)
+void GripperClient::CallSetTargetWidth(uint8_t finger_target_width, uint8_t finger_width_speed, uint8_t gripping_force, uint8_t contact_detection_sesitivity)
 {
-    RCLCPP_INFO(this->get_logger(), "CallTargetWidth()...");
-    if (!_target_width_client->wait_for_service(1s)) {
+    RCLCPP_INFO(this->get_logger(), "CallSetTargetWidth()...");
+    if (!_set_target_width_client->wait_for_service(1s)) {
         if (!rclcpp::ok()) {
             RCLCPP_ERROR(this->get_logger(), "client interrupted while waiting for service to appear.");
             return;
@@ -112,30 +112,30 @@ void GripperClient::CallTargetWidth(uint8_t finger_target_width, uint8_t finger_
         return;
     }
 
-    auto request = std::make_shared<art_gripper_interfaces::srv::TargetWidth::Request>();
+    auto request = std::make_shared<art_gripper_interfaces::srv::SetTargetWidth::Request>();
     request->finger_target_width = finger_target_width;
     request->finger_width_speed = finger_width_speed;
     request->gripping_force = gripping_force;
     request->contact_detection_sesitivity = contact_detection_sesitivity;
 
-    _target_width_client->async_send_request(
-        request, std::bind(&GripperClient::OnTargetWidthResponse, this, _1));
+    _set_target_width_client->async_send_request(
+        request, std::bind(&GripperClient::OnSetTargetWidthResponse, this, _1));
 }
 
-void GripperClient::OnTargetWidthResponse(rclcpp::Client<art_gripper_interfaces::srv::TargetWidth>::SharedFuture future)
+void GripperClient::OnSetTargetWidthResponse(rclcpp::Client<art_gripper_interfaces::srv::SetTargetWidth>::SharedFuture future)
 {
     try {
         auto result = future.get();
         RCLCPP_INFO(this->get_logger(), "service call result: %d", result->result);
     } catch (const std::exception &e) {
-        RCLCPP_ERROR(this->get_logger(), "Failed to call service TargetWidth: %s", e.what());
+        RCLCPP_ERROR(this->get_logger(), "Failed to call service SetTargetWidth: %s", e.what());
     }
 }
 
-void GripperClient::CallTargetPose(uint8_t finger_target_pose, uint8_t finger_pose_speed)
+void GripperClient::CallSetTargetPose(uint8_t finger_target_pose, uint8_t finger_pose_speed)
 {
-    RCLCPP_INFO(this->get_logger(), "CallTargetPose()...");
-    if (!_target_pose_client->wait_for_service(1s)) {
+    RCLCPP_INFO(this->get_logger(), "CallSetTargetPose()...");
+    if (!_set_target_pose_client->wait_for_service(1s)) {
         if (!rclcpp::ok()) {
             RCLCPP_ERROR(this->get_logger(), "client interrupted while waiting for service to appear.");
             return;
@@ -144,21 +144,21 @@ void GripperClient::CallTargetPose(uint8_t finger_target_pose, uint8_t finger_po
         return;
     }
 
-    auto request = std::make_shared<art_gripper_interfaces::srv::TargetPose::Request>();
+    auto request = std::make_shared<art_gripper_interfaces::srv::SetTargetPose::Request>();
     request->finger_target_pose = finger_target_pose;
     request->finger_pose_speed = finger_pose_speed;
 
-    _target_pose_client->async_send_request(
-        request, std::bind(&GripperClient::OnTargetPoseResponse, this, _1));
+    _set_target_pose_client->async_send_request(
+        request, std::bind(&GripperClient::OnSetTargetPoseResponse, this, _1));
 }
 
-void GripperClient::OnTargetPoseResponse(rclcpp::Client<art_gripper_interfaces::srv::TargetPose>::SharedFuture future)
+void GripperClient::OnSetTargetPoseResponse(rclcpp::Client<art_gripper_interfaces::srv::SetTargetPose>::SharedFuture future)
 {
     try {
         auto result = future.get();
         RCLCPP_INFO(this->get_logger(), "service call result: %d", result->result);
     } catch (const std::exception &e) {
-        RCLCPP_ERROR(this->get_logger(), "Failed to call service TargetPose: %s", e.what());
+        RCLCPP_ERROR(this->get_logger(), "Failed to call service SetTargetPose: %s", e.what());
     }
 }
 

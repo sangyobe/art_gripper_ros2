@@ -26,11 +26,11 @@ GripperEcat::GripperEcat()
     _reset_abs_encoder_server = this->create_service<art_gripper_interfaces::srv::ResetAbsEncoder>(
         "ResetAbsEncoder", std::bind(&GripperEcat::OnResetAbsEncoder, this, _1, _2));
 
-    _target_width_server = this->create_service<art_gripper_interfaces::srv::TargetWidth>(
-        "TargetWidth", std::bind(&GripperEcat::OnTargetWidth, this, _1, _2));
+    _target_width_server = this->create_service<art_gripper_interfaces::srv::SetTargetWidth>(
+        "SetTargetWidth", std::bind(&GripperEcat::OnSetTargetWidth, this, _1, _2));
 
-    _target_pose_server = this->create_service<art_gripper_interfaces::srv::TargetPose>(
-        "TargetPose", std::bind(&GripperEcat::OnTargetPose, this, _1, _2));
+    _set_target_pose_server = this->create_service<art_gripper_interfaces::srv::SetTargetPose>(
+        "SetTargetPose", std::bind(&GripperEcat::OnSetTargetPose, this, _1, _2));
 
     _set_target_current_server = this->create_service<art_gripper_interfaces::srv::SetTargetCurrent>(
         "SetTargetCurrent", std::bind(&GripperEcat::OnSetTargetCurrent, this, _1, _2));
@@ -87,21 +87,21 @@ void GripperEcat::OnResetAbsEncoder(
     response->result = 0;
 }
 
-void GripperEcat::OnTargetWidth(
-    const std::shared_ptr<art_gripper_interfaces::srv::TargetWidth::Request> request,
-    std::shared_ptr<art_gripper_interfaces::srv::TargetWidth::Response> response)
+void GripperEcat::OnSetTargetWidth(
+    const std::shared_ptr<art_gripper_interfaces::srv::SetTargetWidth::Request> request,
+    std::shared_ptr<art_gripper_interfaces::srv::SetTargetWidth::Response> response)
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
-    RCLCPP_INFO(this->get_logger(), "TargetWidth: %d, %d, %d, %d", request->finger_target_width, request->finger_width_speed, request->gripping_force, request->contact_detection_sesitivity);
+    RCLCPP_INFO(this->get_logger(), "SetTargetWidth: %d, %d, %d, %d", request->finger_target_width, request->finger_width_speed, request->gripping_force, request->contact_detection_sesitivity);
     response->result = 0;
 }
 
-void GripperEcat::OnTargetPose(
-    const std::shared_ptr<art_gripper_interfaces::srv::TargetPose::Request> request,
-    std::shared_ptr<art_gripper_interfaces::srv::TargetPose::Response> response)
+void GripperEcat::OnSetTargetPose(
+    const std::shared_ptr<art_gripper_interfaces::srv::SetTargetPose::Request> request,
+    std::shared_ptr<art_gripper_interfaces::srv::SetTargetPose::Response> response)
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
-    RCLCPP_INFO(this->get_logger(), "TargetPose: %d, %d", request->finger_target_pose, request->finger_pose_speed);
+    RCLCPP_INFO(this->get_logger(), "SetTargetPose: %d, %d", request->finger_target_pose, request->finger_pose_speed);
     response->result = 0;
 }
 
