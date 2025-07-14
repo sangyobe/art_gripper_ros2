@@ -20,6 +20,9 @@ find_package(art_gripper_interfaces REQUIRED)
 file(GLOB SRCS "src/gripper_ecat/*.cpp")
 add_executable(gripper_ecat ${SRCS})
 ament_target_dependencies(gripper_ecat rclcpp std_msgs art_gripper_interfaces)
+target_include_directories(gripper_ecat PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/gripper_ecat>
+  $<INSTALL_INTERFACE:include/gripper_ecat>)
 
 # add test client target
 file(GLOB SRCS "src/gripper_client/*.cpp")
@@ -31,5 +34,10 @@ install(TARGETS
   gripper_ecat
   gripper_client
   DESTINATION lib/${PROJECT_NAME})
+
+install(
+    FILES src/gripper_ecat/robot_data.h
+    DESTINATION include/gripper_ecat
+)
 
 ament_package()

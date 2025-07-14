@@ -18,11 +18,9 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/GripperControl.msg"
   "msg/GripperStatus.msg"
-  "srv/MotorOn.srv")
+  "srv/MotorOn.srv"
+)
 
-# install target
-# install(TARGETS
-#   art_gripper_interfaces
-#   DESTINATION lib/${PROJECT_NAME})
+ament_export_dependencies(rosidl_default_runtime)
 
 ament_package()
