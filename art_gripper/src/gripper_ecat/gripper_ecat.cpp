@@ -13,51 +13,51 @@ GripperEcat::GripperEcat(std::shared_ptr<RobotData> robot_data)
     int publish_rate_hz = this->get_parameter("status_publish_rate_hz").as_int();
 
     _gripper_control_subscriber = this->create_subscription<art_gripper_interfaces::msg::GripperControl>(
-        "GripperControl", 10, std::bind(&GripperEcat::OnGripperControl, this, _1));
+        "gripper_control", 10, std::bind(&GripperEcat::OnGripperControl, this, _1));
 
     _motor_on_server = this->create_service<art_gripper_interfaces::srv::MotorOn>(
-        "MotorOn", std::bind(&GripperEcat::OnMotorOn, this, _1, _2));
+        "motor_on", std::bind(&GripperEcat::OnMotorOn, this, _1, _2));
 
     _reset_abs_encoder_server = this->create_service<art_gripper_interfaces::srv::ResetAbsEncoder>(
-        "ResetAbsEncoder", std::bind(&GripperEcat::OnResetAbsEncoder, this, _1, _2));
+        "reset_abs_encoder", std::bind(&GripperEcat::OnResetAbsEncoder, this, _1, _2));
 
     _set_target_width_server = this->create_service<art_gripper_interfaces::srv::SetTargetFingerWidth>(
-        "SetTargetFingerWidth", std::bind(&GripperEcat::OnSetTargetFingerWidth, this, _1, _2));
+        "set_target_finger_width", std::bind(&GripperEcat::OnSetTargetFingerWidth, this, _1, _2));
 
     _set_target_pose_server = this->create_service<art_gripper_interfaces::srv::SetTargetFingerPose>(
-        "SetTargetFingerPose", std::bind(&GripperEcat::OnSetTargetFingerPose, this, _1, _2));
+        "set_target_finger_pose", std::bind(&GripperEcat::OnSetTargetFingerPose, this, _1, _2));
 
     _set_target_current_server = this->create_service<art_gripper_interfaces::srv::SetTargetCurrent>(
-        "SetTargetCurrent", std::bind(&GripperEcat::OnSetTargetCurrent, this, _1, _2));
+        "set_target_current", std::bind(&GripperEcat::OnSetTargetCurrent, this, _1, _2));
 
     _set_target_server = this->create_service<art_gripper_interfaces::srv::SetTarget>(
-        "SetTarget", std::bind(&GripperEcat::OnSetTarget, this, _1, _2));
+        "set_target", std::bind(&GripperEcat::OnSetTarget, this, _1, _2));
 
     _reset_friction_model_server = this->create_service<art_gripper_interfaces::srv::ResetFrictionModel>(
-        "ResetFrictionModel", std::bind(&GripperEcat::OnResetFrictionModel, this, _1, _2));
+        "reset_friction_model", std::bind(&GripperEcat::OnResetFrictionModel, this, _1, _2));
 
     _gripper_info_server = this->create_service<art_gripper_interfaces::srv::GetGripperInfo>(
-        "GetGripperInfo", std::bind(&GripperEcat::OnGetGripperInfo, this, _1, _2));
+        "get_gripper_info", std::bind(&GripperEcat::OnGetGripperInfo, this, _1, _2));
 
     _set_contact_sensitivity_server = this->create_service<art_gripper_interfaces::srv::SetContactSensitivity>(
-        "SetContactSensitivity", std::bind(&GripperEcat::OnSetContactSensitivity, this, _1, _2));
+        "set_contact_sensitivity", std::bind(&GripperEcat::OnSetContactSensitivity, this, _1, _2));
 
     _set_gripping_force_server = this->create_service<art_gripper_interfaces::srv::SetGrippingForce>(
-        "SetGrippingForce", std::bind(&GripperEcat::OnSetGrippingForce, this, _1, _2));
+        "set_gripping_force", std::bind(&GripperEcat::OnSetGrippingForce, this, _1, _2));
 
     _set_target_finger_pose_speed_server = this->create_service<art_gripper_interfaces::srv::SetTargetFingerPoseSpeed>(
-        "SetTargetFingerPoseSpeed", std::bind(&GripperEcat::OnSetTargetFingerPoseSpeed, this, _1, _2));
+        "set_target_finger_pose_speed", std::bind(&GripperEcat::OnSetTargetFingerPoseSpeed, this, _1, _2));
 
     _set_target_finger_pose_with_speed_server = this->create_service<art_gripper_interfaces::srv::SetTargetFingerPoseWithSpeed>(
-        "SetTargetFingerPoseWithSpeed", std::bind(&GripperEcat::OnSetTargetFingerPoseWithSpeed, this, _1, _2));
+        "set_target_finger_pose_with_speed", std::bind(&GripperEcat::OnSetTargetFingerPoseWithSpeed, this, _1, _2));
 
     _set_target_finger_width_speed_server = this->create_service<art_gripper_interfaces::srv::SetTargetFingerWidthSpeed>(
-        "SetTargetFingerWidthSpeed", std::bind(&GripperEcat::OnSetTargetFingerWidthSpeed, this, _1, _2));
+        "set_target_finger_width_speed", std::bind(&GripperEcat::OnSetTargetFingerWidthSpeed, this, _1, _2));
 
     _set_target_finger_width_with_speed_server = this->create_service<art_gripper_interfaces::srv::SetTargetFingerWidthWithSpeed>(
-        "SetTargetFingerWidthWithSpeed", std::bind(&GripperEcat::OnSetTargetFingerWidthWithSpeed, this, _1, _2));
+        "set_target_finger_width_with_speed", std::bind(&GripperEcat::OnSetTargetFingerWidthWithSpeed, this, _1, _2));
 
-    _status_publisher = this->create_publisher<art_gripper_interfaces::msg::GripperStatus>("GripperStatus", 10);
+    _status_publisher = this->create_publisher<art_gripper_interfaces::msg::GripperStatus>("gripper_status", 10);
 
     _status_thread = std::thread(&GripperEcat::StatusPublishThread, this);
     RCLCPP_INFO(this->get_logger(), "GripperEcat node has been initialized with a status publish rate of %d Hz.", publish_rate_hz);
@@ -74,8 +74,8 @@ GripperEcat::~GripperEcat()
 void GripperEcat::OnGripperControl(const art_gripper_interfaces::msg::GripperControl::SharedPtr msg)
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
-    RCLCPP_INFO(this->get_logger(), "Received GripperControl: control_word=%d, finger_width=%d", msg->control_word, msg->finger_width);
-    _robot_data->control.control_word = msg->control_word;
+    RCLCPP_INFO(this->get_logger(), "Received GripperControl: gripper_control=%d, finger_width=%d", msg->gripper_control, msg->finger_width);
+    _robot_data->control.gripper_control = msg->gripper_control;
     _robot_data->control.finger_width = msg->finger_width;
     _robot_data->control.finger_pose = msg->finger_pose;
     _robot_data->control.finger_width_speed = msg->finger_width_speed;
@@ -94,11 +94,11 @@ void GripperEcat::OnMotorOn(
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     if (request->on) {
         RCLCPP_INFO(this->get_logger(), "motor on");
-        // Example of modifying shared data
-        _robot_data->status.gripper_status = 1; // In-motion for example
+        _robot_data->control.gripper_control &= ~GRIPPER_COMMAND::FRICTION_MODEL_ID_BIT;
+        _robot_data->initProcess = 0;
     } else {
         RCLCPP_INFO(this->get_logger(), "motor off");
-        _robot_data->status.gripper_status = 0; // Ready for example
+        _robot_data->control.gripper_control &= ~GRIPPER_COMMAND::SERVO_SWITCH_BIT;
     }
     response->result = 0;
 }
@@ -109,8 +109,7 @@ void GripperEcat::OnResetAbsEncoder(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "reset abs encoder");
-    // Example of modifying shared data
-    _robot_data->status.gripper_status = 2; // In-motion for example
+    _robot_data->control.gripper_control |= GRIPPER_COMMAND::ABS_ENCODER_RESET_BIT;
     response->result = 0;
 }
 
@@ -120,6 +119,8 @@ void GripperEcat::OnSetTargetFingerWidth(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "SetTargetFingerWidth: %d", request->finger_width);
+    _robot_data->control.finger_width = request->finger_width;
+    _robot_data->control.gripper_control |= GRIPPER_COMMAND::TARGET_UPDATE_BIT;
     response->result = 0;
 }
 
@@ -129,6 +130,8 @@ void GripperEcat::OnSetTargetFingerPose(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "SetTargetFingerPose: %d", request->finger_pose);
+    _robot_data->control.finger_pose = request->finger_pose;
+    _robot_data->control.gripper_control |= GRIPPER_COMMAND::TARGET_UPDATE_BIT;
     response->result = 0;
 }
 
@@ -138,6 +141,11 @@ void GripperEcat::OnSetTargetCurrent(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "SetTargetCurrent: %d, %d, %d, %d", request->target_current[0], request->target_current[1], request->target_current[2], request->target_current[3]);
+    _robot_data->control.target_current[0] = request->target_current[0];
+    _robot_data->control.target_current[1] = request->target_current[1];
+    _robot_data->control.target_current[2] = request->target_current[2];
+    _robot_data->control.target_current[3] = request->target_current[3];
+    _robot_data->control.gripper_control &= ~GRIPPER_COMMAND::TARGET_UPDATE_BIT;
     response->result = 0;
 }
 
@@ -147,6 +155,13 @@ void GripperEcat::OnSetTarget(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "SetTarget: %d, %d, %d, %d, %d, %d", request->finger_width, request->finger_pose, request->finger_width_speed, request->finger_pose_speed, request->gripping_force, request->contact_sensitivity);
+    _robot_data->control.finger_pose = request->finger_pose;
+    _robot_data->control.finger_width = request->finger_width;
+    _robot_data->control.finger_pose_speed = request->finger_pose_speed;
+    _robot_data->control.finger_width_speed = request->finger_width_speed;
+    _robot_data->control.gripping_force = request->gripping_force;
+    _robot_data->control.contact_sensitivity = request->contact_sensitivity;
+    _robot_data->control.gripper_control |= GRIPPER_COMMAND::TARGET_UPDATE_BIT;
     response->result = 0;
 }
 
@@ -156,6 +171,7 @@ void GripperEcat::OnResetFrictionModel(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "ResetFrictionModel");
+    _robot_data->control.gripper_control |= GRIPPER_COMMAND::FRICTION_MODEL_ID_BIT;
     response->result = 0;
 }
 
@@ -174,7 +190,8 @@ void GripperEcat::OnSetContactSensitivity(
     std::shared_ptr<art_gripper_interfaces::srv::SetContactSensitivity::Response> response)
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
-    RCLCPP_INFO(this->get_logger(), "SetContactSensitivity: %d", request->sesitivity);
+    RCLCPP_INFO(this->get_logger(), "SetContactSensitivity: %d", request->contact_sensitivity);
+    _robot_data->control.contact_sensitivity = std::max(request->contact_sensitivity, (uint8_t)100);
     response->result = 0;
 }
 
@@ -184,6 +201,7 @@ void GripperEcat::OnSetGrippingForce(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "SetGrippingForce: %d", request->gripping_force);
+    _robot_data->control.gripping_force = std::max(request->gripping_force, (uint8_t)100);
     response->result = 0;
 }
 
@@ -193,6 +211,8 @@ void GripperEcat::OnSetTargetFingerPoseSpeed(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "SetTargetFingerPoseSpeed: %d", request->finger_pose_speed);
+    _robot_data->control.finger_pose_speed = request->finger_pose_speed;
+    _robot_data->control.gripper_control |= GRIPPER_COMMAND::TARGET_UPDATE_BIT;
     response->result = 0;
 }
 
@@ -202,6 +222,9 @@ void GripperEcat::OnSetTargetFingerPoseWithSpeed(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "SetTargetFingerPoseWithSpeed: %d, %d", request->finger_pose, request->finger_pose_speed);
+    _robot_data->control.finger_pose = request->finger_pose;
+    _robot_data->control.finger_pose_speed = request->finger_pose_speed;
+    _robot_data->control.gripper_control |= GRIPPER_COMMAND::TARGET_UPDATE_BIT;
     response->result = 0;
 }
 
@@ -211,6 +234,8 @@ void GripperEcat::OnSetTargetFingerWidthSpeed(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "SetTargetFingerWidthSpeed: %d", request->finger_width_speed);
+    _robot_data->control.finger_width_speed = request->finger_width_speed;
+    _robot_data->control.gripper_control |= GRIPPER_COMMAND::TARGET_UPDATE_BIT;
     response->result = 0;
 }
 
@@ -220,6 +245,9 @@ void GripperEcat::OnSetTargetFingerWidthWithSpeed(
 {
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "SetTargetFingerWidthWithSpeed: %d, %d", request->finger_width, request->finger_width_speed);
+    _robot_data->control.finger_width = request->finger_width;
+    _robot_data->control.finger_width_speed = request->finger_width_speed;
+    _robot_data->control.gripper_control |= GRIPPER_COMMAND::TARGET_UPDATE_BIT;
     response->result = 0;
 }
 

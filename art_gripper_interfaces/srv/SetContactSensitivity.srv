@@ -1,5 +1,5 @@
 # Request
-uint8 sesitivity  # 1~100(default:80)
+uint8 contact_sensitivity  # 1~100(default:80)
 ---
 # Response
 int32 result

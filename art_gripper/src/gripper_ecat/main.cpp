@@ -30,8 +30,8 @@ int main(int argc, char *argv[])
 
     g_sys_data->robotData = g_robot_data.get();
 
-    dtTerm::SetupTerminal(false); // show cursor - false
-    dtTerm::ClearDisp();
+    // dtTerm::SetupTerminal(false); // show cursor - false
+    // dtTerm::ClearDisp();
 
     if (initDevice(g_sys_data.get())) goto error;
     if (initThread(g_sys_data.get())) goto error;
@@ -43,12 +43,12 @@ int main(int argc, char *argv[])
      goto exitSuccess;
 
 error:
-    dtTerm::Printf("Init Failed!!\n");  
+    // dtTerm::Printf("Init Failed!!\n");  
 
 exitSuccess:
     closeThread();
-//     closeDevice(g_sys_data.get());
-    dtTerm::RestoreTerminal();
+    closeDevice(g_sys_data.get());
+    // dtTerm::RestoreTerminal();
 
     return 0;
 }

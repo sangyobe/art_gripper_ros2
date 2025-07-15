@@ -35,60 +35,60 @@ void *ThreadProcCtrl(void *arg)
 
         readDevice(robotData);
 
-        // ///////////////////////////////
-        // /* User Computation Function */
-        // static bool resetAbsEncoder = false;
-        // static bool resetFriction = false;
+        ///////////////////////////////
+        /* User Computation Function */
+        static bool resetAbsEncoder = false;
+        static bool resetFriction = false;
 
-        // // Initialization
-        // if (robotData->initProcess == 0)
-        // {
-        //     // Gripper start command
-        //     robotData->control.control_word = GRIPPER_COMMAND::SERVO_SWITCH_BIT;
-        //     robotData->initProcess++;
-        // }
-        // else if (robotData->initProcess == 1)
-        // {
-        //     if (robotData->status.gripper_status & GRIPPER_STATUS::READY_BIT)
-        //     {
-        //         dtTerm::Print("Gripper started.\n");
-        //         robotData->control.finger_width = robotData->status.finger_width;
-        //         robotData->control.finger_pose = robotData->status.finger_pose;
-        //         robotData->control.finger_width_speed = 150;
-        //         robotData->control.finger_pose_speed = 180;
-        //         robotData->control.gripping_force = 30;
-        //         robotData->control.contact_sensitivity = 80;
-        //         robotData->initProcess++;
-        //     }
-        // }
+        // Initialization
+        if (robotData->initProcess == 0)
+        {
+            // Gripper start command
+            robotData->control.gripper_control = GRIPPER_COMMAND::SERVO_SWITCH_BIT;
+            robotData->initProcess++;
+        }
+        else if (robotData->initProcess == 1)
+        {
+            if (robotData->status.gripper_status & GRIPPER_STATUS::READY_BIT)
+            {
+                dtTerm::Print("Gripper started.\n");
+                robotData->control.finger_width = robotData->status.finger_width;
+                robotData->control.finger_pose = robotData->status.finger_pose;
+                robotData->control.finger_width_speed = 150;
+                robotData->control.finger_pose_speed = 180;
+                robotData->control.gripping_force = 30;
+                robotData->control.contact_sensitivity = 80;
+                robotData->initProcess++;
+            }
+        }
 
-        // // Clear gripper target update bit
-        // if (robotData->control.control_word & GRIPPER_COMMAND::TARGET_UPDATE_BIT)
-        // {
-        //     if (robotData->status.gripper_status & GRIPPER_STATUS::IN_MOTION_BIT)
-        //     {
-        //         robotData->control.control_word &= ~GRIPPER_COMMAND::TARGET_UPDATE_BIT;
-        //     }
-        // }
+        // Clear gripper target update bit
+        if (robotData->control.gripper_control & GRIPPER_COMMAND::TARGET_UPDATE_BIT)
+        {
+            if (robotData->status.gripper_status & GRIPPER_STATUS::IN_MOTION_BIT)
+            {
+                robotData->control.gripper_control &= ~GRIPPER_COMMAND::TARGET_UPDATE_BIT;
+            }
+        }
 
-        // // Clear absolute encoder reset bit
-        // if (resetAbsEncoder && ((robotData->status.gripper_status & GRIPPER_STATUS::READY_BIT) == 0))
-        // {
-        //     robotData->control.control_word &= ~GRIPPER_COMMAND::ABS_ENCODER_RESET_BIT;
-        //     resetAbsEncoder = false;
-        // }
+        // Clear absolute encoder reset bit
+        if (resetAbsEncoder && ((robotData->status.gripper_status & GRIPPER_STATUS::READY_BIT) == 0))
+        {
+            robotData->control.gripper_control &= ~GRIPPER_COMMAND::ABS_ENCODER_RESET_BIT;
+            resetAbsEncoder = false;
+        }
 
-        // // Clear friction model reset bit
-        // if (resetFriction && ((robotData->status.gripper_status & GRIPPER_STATUS::READY_BIT) == 0))
-        // {
-        //     robotData->control.control_word &= ~GRIPPER_COMMAND::FRICTION_MODEL_ID_BIT;
-        //     resetFriction = false;
-        // }
+        // Clear friction model reset bit
+        if (resetFriction && ((robotData->status.gripper_status & GRIPPER_STATUS::READY_BIT) == 0))
+        {
+            robotData->control.gripper_control &= ~GRIPPER_COMMAND::FRICTION_MODEL_ID_BIT;
+            resetFriction = false;
+        }
 
-        // /* End of User Computation Function */
-        // //////////////////////////////////////
+        /* End of User Computation Function */
+        //////////////////////////////////////
 
-        // writeDevice(robotData);
+        writeDevice(robotData);
         Cnt++;
 
         // PostSemaphore(*sysData->dispSem);

@@ -10,21 +10,21 @@ from art_gripper_interfaces.srv import (
 class GripperClient(Node):
     def __init__(self):
         super().__init__('gripper_client_py')
-        self.gripper_control_publisher = self.create_publisher(GripperControl, 'GripperControl', 10)
-        self.motor_on_client = self.create_client(MotorOn, 'MotorOn')
-        self.reset_abs_encoder_client = self.create_client(ResetAbsEncoder, 'ResetAbsEncoder')
-        self.set_target_finger_width_client = self.create_client(SetTargetFingerWidth, 'SetTargetFingerWidth')
-        self.set_target_finger_pose_client = self.create_client(SetTargetFingerPose, 'SetTargetFingerPose')
-        self.set_target_current_client = self.create_client(SetTargetCurrent, 'SetTargetCurrent')
-        self.set_target_client = self.create_client(SetTarget, 'SetTarget')
-        self.reset_friction_model_client = self.create_client(ResetFrictionModel, 'ResetFrictionModel')
-        self.get_gripper_info_client = self.create_client(GetGripperInfo, 'GetGripperInfo')
-        self.set_contact_sensitivity_client = self.create_client(SetContactSensitivity, 'SetContactSensitivity')
-        self.set_gripping_force_client = self.create_client(SetGrippingForce, 'SetGrippingForce')
-        self.set_target_finger_pose_speed_client = self.create_client(SetTargetFingerPoseSpeed, 'SetTargetFingerPoseSpeed')
-        self.set_target_finger_pose_with_speed_client = self.create_client(SetTargetFingerPoseWithSpeed, 'SetTargetFingerPoseWithSpeed')
-        self.set_target_finger_width_speed_client = self.create_client(SetTargetFingerWidthSpeed, 'SetTargetFingerWidthSpeed')
-        self.set_target_finger_width_with_speed_client = self.create_client(SetTargetFingerWidthWithSpeed, 'SetTargetFingerWidthWithSpeed')
+        self.gripper_control_publisher = self.create_publisher(GripperControl, 'gripper_control', 10)
+        self.motor_on_client = self.create_client(MotorOn, 'motor_on')
+        self.reset_abs_encoder_client = self.create_client(ResetAbsEncoder, 'reset_abs_encoder')
+        self.set_target_finger_width_client = self.create_client(SetTargetFingerWidth, 'set_target_finger_width')
+        self.set_target_finger_pose_client = self.create_client(SetTargetFingerPose, 'set_target_finger_pose')
+        self.set_target_current_client = self.create_client(SetTargetCurrent, 'set_target_current')
+        self.set_target_client = self.create_client(SetTarget, 'set_target')
+        self.reset_friction_model_client = self.create_client(ResetFrictionModel, 'reset_friction_model')
+        self.get_gripper_info_client = self.create_client(GetGripperInfo, 'get_gripper_info')
+        self.set_contact_sensitivity_client = self.create_client(SetContactSensitivity, 'set_contact_sensitivity')
+        self.set_gripping_force_client = self.create_client(SetGrippingForce, 'set_gripping_force')
+        self.set_target_finger_pose_speed_client = self.create_client(SetTargetFingerPoseSpeed, 'set_target_finger_pose_speed')
+        self.set_target_finger_pose_with_speed_client = self.create_client(SetTargetFingerPoseWithSpeed, 'set_target_finger_pose_with_speed')
+        self.set_target_finger_width_speed_client = self.create_client(SetTargetFingerWidthSpeed, 'set_target_finger_width_speed')
+        self.set_target_finger_width_with_speed_client = self.create_client(SetTargetFingerWidthWithSpeed, 'set_target_finger_width_with_speed')
 
         # for periodic action
         timer_period = 1.0
@@ -58,7 +58,7 @@ class GripperClient(Node):
 
     def publish_gripper_control(self):
         msg = GripperControl()
-        msg.control_word = 1
+        msg.gripper_control = 1
         msg.finger_width = 50
         msg.finger_pose = 90
         msg.finger_width_speed = 100
@@ -203,12 +203,12 @@ class GripperClient(Node):
         except Exception as e:
             self.get_logger().error(f'GetGripperInfo service call failed: {e}')
 
-    def call_set_contact_sensitivity(self, sensitivity):
+    def call_set_contact_sensitivity(self, contact_sensitivity):
         while not self.set_contact_sensitivity_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('SetContactSensitivity service not available, waiting again...')
 
         request = SetContactSensitivity.Request()
-        request.sesitivity = sensitivity
+        request.contact_sensitivity = contact_sensitivity
         self.future = self.set_contact_sensitivity_client.call_async(request)
         self.future.add_done_callback(self.set_contact_sensitivity_callback)
 

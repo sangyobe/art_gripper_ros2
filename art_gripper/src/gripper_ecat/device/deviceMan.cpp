@@ -66,7 +66,7 @@ int writeDevice(RobotData *robotData)
     EC_WRITE_U8(addrSpeedWidth, robotData->control.finger_width_speed);
     EC_WRITE_U8(addrSpeedPose, robotData->control.finger_pose_speed);
     EC_WRITE_U8(addrForce, robotData->control.gripping_force);
-    EC_WRITE_U8(addrControlword, robotData->control.control_word);
+    EC_WRITE_U8(addrControlword, robotData->control.gripper_control);
     EC_WRITE_U8(addrContactSensitivity, robotData->control.contact_sensitivity);
     ecMasterM2S();
     return 0;
@@ -85,7 +85,7 @@ int readDevice(RobotData *robotData)
 int closeDevice(SysData *sysData)
 {
     // Disable gripper
-    sysData->robotData->control.control_word = 0;
+    sysData->robotData->control.gripper_control = 0;
     writeDevice(sysData->robotData);
 
     // Exit Process

@@ -8,16 +8,22 @@ using std::placeholders::_1;
 GripperClient::GripperClient()
 : Node("gripper_client"), _working_count(0)
 {
-    _gripper_control_publisher = this->create_publisher<art_gripper_interfaces::msg::GripperControl>("GripperControl", 10);
+    _gripper_control_publisher = this->create_publisher<art_gripper_interfaces::msg::GripperControl>("gripper_control", 10);
     _timer = this->create_wall_timer(1000ms, std::bind(&GripperClient::OnTimer, this));
-    _motor_on_client = this->create_client<art_gripper_interfaces::srv::MotorOn>("MotorOn");
-    _reset_abs_encoder_client = this->create_client<art_gripper_interfaces::srv::ResetAbsEncoder>("ResetAbsEncoder");
-    _set_target_finger_width_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerWidth>("SetTargetFingerWidth");
-    _set_target_finger_pose_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerPose>("SetTargetFingerPose");
-    _set_target_current_client = this->create_client<art_gripper_interfaces::srv::SetTargetCurrent>("SetTargetCurrent");
-    _set_target_client = this->create_client<art_gripper_interfaces::srv::SetTarget>("SetTarget");
-    _reset_friction_model_client = this->create_client<art_gripper_interfaces::srv::ResetFrictionModel>("ResetFrictionModel");
-    _gripper_info_client = this->create_client<art_gripper_interfaces::srv::GetGripperInfo>("GetGripperInfo");
+    _motor_on_client = this->create_client<art_gripper_interfaces::srv::MotorOn>("motor_on");
+    _reset_abs_encoder_client = this->create_client<art_gripper_interfaces::srv::ResetAbsEncoder>("reset_abs_encoder");
+    _set_target_finger_width_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerWidth>("set_target_finger_width");
+    _set_target_finger_pose_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerPose>("set_target_finger_pose");
+    _set_target_current_client = this->create_client<art_gripper_interfaces::srv::SetTargetCurrent>("set_target_current");
+    _set_target_client = this->create_client<art_gripper_interfaces::srv::SetTarget>("set_target");
+    _reset_friction_model_client = this->create_client<art_gripper_interfaces::srv::ResetFrictionModel>("reset_friction_model");
+    _gripper_info_client = this->create_client<art_gripper_interfaces::srv::GetGripperInfo>("get_gripper_info");
+    _set_contact_sensitivity_client = this->create_client<art_gripper_interfaces::srv::SetContactSensitivity>("set_contact_sensitivity");
+    _set_gripping_force_client = this->create_client<art_gripper_interfaces::srv::SetGrippingForce>("set_gripping_force");
+    _set_target_finger_pose_speed_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerPoseSpeed>("set_target_finger_pose_speed");
+    _set_target_finger_pose_with_speed_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerPoseWithSpeed>("set_target_finger_pose_with_speed");
+    _set_target_finger_width_speed_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerWidthSpeed>("set_target_finger_width_speed");
+    _set_target_finger_width_with_speed_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerWidthWithSpeed>("set_target_finger_width_with_speed");
 }
 
 void GripperClient::OnTimer()
@@ -29,16 +35,20 @@ void GripperClient::OnTimer()
     }
 
     if (_working_count % 5 == 0) {
-        if (_working_count % 5 == 0) {
         this->CallResetAbsEncoder();
         this->CallSetTargetFingerWidth(50);
         this->CallSetTargetFingerPose(90);
         int16_t current_array[4] = {100, 200, 300, 400};
         this->CallSetTargetCurrent(current_array);
         this->CallSetTarget(25, 45, 75, 90, 20, 60);
+        this->CallSetContactSensitivity(80);
+        this->CallSetGrippingForce(30);
+        this->CallSetTargetFingerPoseSpeed(180);
+        this->CallSetTargetFingerPoseWithSpeed(90, 180);
+        this->CallSetTargetFingerWidthSpeed(150);
+        this->CallSetTargetFingerWidthWithSpeed(50, 150);
         this->CallResetFrictionModel();
         this->CallGetGripperInfo();
-    }
     }
 
     this->PublishGripperControl();
@@ -49,7 +59,7 @@ void GripperClient::OnTimer()
 void GripperClient::PublishGripperControl()
 {
     auto msg = art_gripper_interfaces::msg::GripperControl();
-    msg.control_word = 1;
+    msg.gripper_control = 1;
     msg.finger_width = 50;
     msg.finger_pose = 90;
     msg.finger_width_speed = 100;
@@ -297,7 +307,7 @@ void GripperClient::OnGetGripperInfoResponse(rclcpp::Client<art_gripper_interfac
     }
 }
 
-void GripperClient::CallSetContactSensitivity(uint8_t sensitivity)
+void GripperClient::CallSetContactSensitivity(uint8_t contact_sensitivity)
 {
     RCLCPP_INFO(this->get_logger(), "CallSetContactSensitivity()...");
     if (!_set_contact_sensitivity_client->wait_for_service(1s)) {
@@ -310,7 +320,7 @@ void GripperClient::CallSetContactSensitivity(uint8_t sensitivity)
     }
 
     auto request = std::make_shared<art_gripper_interfaces::srv::SetContactSensitivity::Request>();
-    request->sesitivity = sensitivity;
+    request->contact_sensitivity = contact_sensitivity;
 
     _set_contact_sensitivity_client->async_send_request(
         request, std::bind(&GripperClient::OnSetContactSensitivityResponse, this, _1));

@@ -46,7 +46,7 @@ public:
 typedef struct _gripperControl
 {
 public:
-    uint8_t control_word = 0;
+    uint8_t gripper_control = 0;
     uint8_t finger_width = 0;
     uint8_t finger_pose = 0;
     uint8_t finger_width_speed = 0;
@@ -60,17 +60,6 @@ typedef struct _robotData
 {
     uint8_t initProcess;
     uint16_t keyboardInput;
-
-    // uint8_t status;
-    // uint8_t actualWidth;
-    // uint8_t actualPose;
-    // uint8_t targetWidth;
-    // uint8_t targetPose;
-    // uint8_t grippingForce;
-    // uint8_t speedWidth;
-    // uint8_t speedPose;
-    // uint8_t controlWord;
-    // uint8_t contactSensitivity;
 
     GripperStatus status;
     GripperControl control;

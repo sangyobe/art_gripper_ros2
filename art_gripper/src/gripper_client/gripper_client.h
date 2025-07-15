@@ -34,7 +34,7 @@ public:
     void CallResetFrictionModel();
     void PublishGripperControl();
     void CallGetGripperInfo();
-    void CallSetContactSensitivity(uint8_t sensitivity);
+    void CallSetContactSensitivity(uint8_t contact_sensitivity);
     void CallSetGrippingForce(uint8_t force);
     void CallSetTargetFingerPoseSpeed(uint8_t speed);
     void CallSetTargetFingerPoseWithSpeed(uint8_t pose, uint8_t speed);
