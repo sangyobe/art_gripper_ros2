@@ -168,3 +168,25 @@
   | --- | --- | --- |
   | `finger_width` | `uint8` | 목표 핑거 너비. [mm], 0~100 |
   | `finger_width_speed` | `uint8` | 핑거 개폐 속도. [mm/s], 1~200(default:150) |
+
+---
+
+### **ROS Publishers**
+
+#### **1. `GripperStatus`**
+
+그리퍼의 현재 상태를 게시합니다.
+
+- **토픽 이름:** `/gripper_status`
+- **메시지 타입:** `art_gripper_interfaces/msg/GripperStatus`
+
+| 필드명 | 타입 | 설명 |
+| --- | --- | --- |
+| `gripper_status` | `uint16` | 그리퍼의 현재 상태 |
+| `finger_width` | `uint8` | 현재 핑거 너비 [mm] |
+| `finger_pose` | `uint8` | 현재 핑거 회전 각도 [deg] |
+| `status_word` | `uint16` | 상태 워드 |
+| `position` | `int32[4]` | 각 모터의 위치 |
+| `position_auxiliary` | `int32[4]` | 각 모터의 보조 위치 |
+| `velocity` | `int16[4]` | 각 모터의 속도 |
+| `current` | `int16[4]` | 각 모터의 전류 |
