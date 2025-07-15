@@ -6,10 +6,10 @@ static int offsetTargetPose;
 static int offsetSpeedWidth;
 static int offsetSpeedPose;
 static int offsetForce;
-static int offsetStatus;
+static int offsetGripperStatus;
 static int offsetActualWidth;
 static int offsetActualPose;
-static int offsetControlword;
+static int offsetGripperControl;
 static int offsetContactSensitivity;
 
 static uint8_t *addrTargetWidth;
@@ -17,10 +17,10 @@ static uint8_t *addrTargetPose;
 static uint8_t *addrSpeedWidth;
 static uint8_t *addrSpeedPose;
 static uint8_t *addrForce;
-static uint8_t *addrStatus;
+static uint8_t *addrGripperStatus;
 static uint8_t *addrActualWidth;
 static uint8_t *addrActualPose;
-static uint8_t *addrControlword;
+static uint8_t *addrGripperControl;
 static uint8_t *addrContactSensitivity;
 
 int initDevice(SysData *sysData)
@@ -35,10 +35,10 @@ int initDevice(SysData *sysData)
     ecRegDomainPdoEntry(GRIPPER_OBJ_SPEED_WIDTH, 0x00, &offsetSpeedWidth);
     ecRegDomainPdoEntry(GRIPPER_OBJ_SPEED_POSE, 0x00, &offsetSpeedPose);
     ecRegDomainPdoEntry(GRIPPER_OBJ_FORCE, 0x00, &offsetForce);
-    ecRegDomainPdoEntry(GRIPPER_OBJ_STATUS, 0x00, &offsetStatus);
+    ecRegDomainPdoEntry(GRIPPER_OBJ_GRIPPER_STATUS, 0x00, &offsetGripperStatus);
     ecRegDomainPdoEntry(GRIPPER_OBJ_ACTUAL_WIDTH, 0x00, &offsetActualWidth);
     ecRegDomainPdoEntry(GRIPPER_OBJ_ACTUAL_POSE, 0x00, &offsetActualPose);
-    ecRegDomainPdoEntry(GRIPPER_OBJ_CONTROLWORD, 0x00, &offsetControlword);
+    ecRegDomainPdoEntry(GRIPPER_OBJ_GRIPPER_CONTROL, 0x00, &offsetGripperControl);
     ecRegDomainPdoEntry(GRIPPER_OBJ_CONTACT_SENSITIVITY, 0x00, &offsetContactSensitivity);
 
     ecStart(sysData);
@@ -48,15 +48,14 @@ int initDevice(SysData *sysData)
     addrSpeedWidth = sysData->pPdoList + offsetSpeedWidth;
     addrSpeedPose = sysData->pPdoList + offsetSpeedPose;
     addrForce = sysData->pPdoList + offsetForce;
-    addrStatus = sysData->pPdoList + offsetStatus;
+    addrGripperStatus = sysData->pPdoList + offsetGripperStatus;
     addrActualWidth = sysData->pPdoList + offsetActualWidth;
     addrActualPose = sysData->pPdoList + offsetActualPose;
-    addrControlword = sysData->pPdoList + offsetControlword;
+    addrGripperControl = sysData->pPdoList + offsetGripperControl;
     addrContactSensitivity = sysData->pPdoList + offsetContactSensitivity;
 
     return 0;
 }
-
 
 int writeDevice(RobotData *robotData)
 {
@@ -66,11 +65,10 @@ int writeDevice(RobotData *robotData)
     EC_WRITE_U8(addrSpeedWidth, robotData->control.finger_width_speed);
     EC_WRITE_U8(addrSpeedPose, robotData->control.finger_pose_speed);
     EC_WRITE_U8(addrForce, robotData->control.gripping_force);
-    EC_WRITE_U8(addrControlword, robotData->control.gripper_control);
+    EC_WRITE_U8(addrGripperControl, robotData->control.gripper_control);
     EC_WRITE_U8(addrContactSensitivity, robotData->control.contact_sensitivity);
     ecMasterM2S();
     return 0;
-
 }
 
 int readDevice(RobotData *robotData)
@@ -78,7 +76,7 @@ int readDevice(RobotData *robotData)
     ecMasterS2M();
     robotData->status.finger_width = EC_READ_U8(addrActualWidth);
     robotData->status.finger_pose = EC_READ_U8(addrActualPose);
-    robotData->status.gripper_status = EC_READ_U8(addrStatus);
+    robotData->status.gripper_status = EC_READ_U8(addrGripperStatus);
     return 0;
 }
 
@@ -90,7 +88,6 @@ int closeDevice(SysData *sysData)
 
     // Exit Process
     return 0;
-
 }
 
 void CheckKeyboardInput(SysData *sysData)
