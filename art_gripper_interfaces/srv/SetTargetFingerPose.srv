@@ -1,0 +1,5 @@
+# Request
+uint8 finger_pose                   # [deg], 0~180
+---
+# Response
+int32 result

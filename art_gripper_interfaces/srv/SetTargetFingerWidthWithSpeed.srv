@@ -1,0 +1,6 @@
+# Request
+uint8 finger_width                  # [mm], 0~100
+uint8 finger_width_speed            # [mm/s], 1~200(default:150)
+---
+# Response
+int32 result

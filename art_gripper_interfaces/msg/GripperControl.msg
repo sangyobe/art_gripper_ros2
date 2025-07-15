@@ -12,10 +12,10 @@ uint8 control_word
 # 7   | set control mode       | 0:basic mode, 1:direct CST(cyclic synchronous torque) control mode  |
 # ----------------------------------------------------------------------------------------------------------------------
 
-uint8 finger_target_width           # [mm], 0~100
-uint8 finger_target_pose            # [deg], 0~180
+uint8 finger_width                  # [mm], 0~100
+uint8 finger_pose                   # [deg], 0~180
 uint8 finger_width_speed            # [mm/s], 1~200(default:150)
 uint8 finger_pose_speed             # [deg/s], 1~255(default: 180)
 uint8 gripping_force                # [N], 1~100(default:30)
-uint8 contact_detection_sesitivity  # 1~100(default:80)
+uint8 contact_sensitivity           # 1~100(default:80)
 int16[4] target_current             # 모터 제어 명령

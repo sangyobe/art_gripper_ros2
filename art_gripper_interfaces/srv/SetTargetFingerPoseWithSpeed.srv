@@ -1,5 +1,5 @@
 # Request
-uint8 finger_target_pose            # [deg], 0~180
+uint8 finger_pose                   # [deg], 0~180
 uint8 finger_pose_speed             # [deg/s], 1~255(default: 180)
 ---
 # Response

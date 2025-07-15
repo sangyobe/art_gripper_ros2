@@ -1,0 +1,5 @@
+# Request
+uint8 gripping_force                # [N], 1~100(default:30)
+---
+# Response
+int32 result

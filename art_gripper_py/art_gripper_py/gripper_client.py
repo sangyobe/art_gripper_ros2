@@ -2,7 +2,10 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from art_gripper_interfaces.msg import GripperControl, GripperStatus, GripperInfo
-from art_gripper_interfaces.srv import MotorOn, ResetAbsEncoder, SetTargetWidth, SetTargetPose, SetTargetCurrent, SetTarget, ResetFrictionModel, GetGripperInfo
+from art_gripper_interfaces.srv import (
+    MotorOn, ResetAbsEncoder, SetTargetFingerWidth, SetTargetFingerPose, SetTargetCurrent, SetTarget, ResetFrictionModel, GetGripperInfo,
+    SetContactSensitivity, SetGrippingForce, SetTargetFingerPoseSpeed, SetTargetFingerPoseWithSpeed, SetTargetFingerWidthSpeed, SetTargetFingerWidthWithSpeed
+)
 
 class GripperClient(Node):
     def __init__(self):
@@ -10,12 +13,18 @@ class GripperClient(Node):
         self.gripper_control_publisher = self.create_publisher(GripperControl, 'GripperControl', 10)
         self.motor_on_client = self.create_client(MotorOn, 'MotorOn')
         self.reset_abs_encoder_client = self.create_client(ResetAbsEncoder, 'ResetAbsEncoder')
-        self.set_target_width_client = self.create_client(SetTargetWidth, 'SetTargetWidth')
-        self.set_target_pose_client = self.create_client(SetTargetPose, 'SetTargetPose')
+        self.set_target_finger_width_client = self.create_client(SetTargetFingerWidth, 'SetTargetFingerWidth')
+        self.set_target_finger_pose_client = self.create_client(SetTargetFingerPose, 'SetTargetFingerPose')
         self.set_target_current_client = self.create_client(SetTargetCurrent, 'SetTargetCurrent')
         self.set_target_client = self.create_client(SetTarget, 'SetTarget')
         self.reset_friction_model_client = self.create_client(ResetFrictionModel, 'ResetFrictionModel')
         self.get_gripper_info_client = self.create_client(GetGripperInfo, 'GetGripperInfo')
+        self.set_contact_sensitivity_client = self.create_client(SetContactSensitivity, 'SetContactSensitivity')
+        self.set_gripping_force_client = self.create_client(SetGrippingForce, 'SetGrippingForce')
+        self.set_target_finger_pose_speed_client = self.create_client(SetTargetFingerPoseSpeed, 'SetTargetFingerPoseSpeed')
+        self.set_target_finger_pose_with_speed_client = self.create_client(SetTargetFingerPoseWithSpeed, 'SetTargetFingerPoseWithSpeed')
+        self.set_target_finger_width_speed_client = self.create_client(SetTargetFingerWidthSpeed, 'SetTargetFingerWidthSpeed')
+        self.set_target_finger_width_with_speed_client = self.create_client(SetTargetFingerWidthWithSpeed, 'SetTargetFingerWidthWithSpeed')
 
         # for periodic action
         timer_period = 1.0
@@ -30,10 +39,16 @@ class GripperClient(Node):
 
         if self.working_count % 5 == 0:
             self.call_reset_abs_encoder()
-            self.call_set_target_width(50, 100, 50, 80)
-            self.call_set_target_pose(90, 120)
+            self.call_set_target_finger_width(50, 100, 50, 80)
+            self.call_set_target_finger_pose(90, 120)
             self.call_set_target_current([100, 200, 300, 400])
             self.call_set_target(25, 45, 75, 90, 20, 60)
+            self.call_set_contact_sensitivity(80)
+            self.call_set_gripping_force(30)
+            self.call_set_target_finger_pose_speed(180)
+            self.call_set_target_finger_pose_with_speed(90, 180)
+            self.call_set_target_finger_width_speed(150)
+            self.call_set_target_finger_width_with_speed(50, 150)
             self.call_reset_friction_model()
             self.call_get_gripper_info()
 
@@ -44,12 +59,12 @@ class GripperClient(Node):
     def publish_gripper_control(self):
         msg = GripperControl()
         msg.control_word = 1
-        msg.finger_target_width = 50
-        msg.finger_target_pose = 90
+        msg.finger_width = 50
+        msg.finger_pose = 90
         msg.finger_width_speed = 100
         msg.finger_pose_speed = 150
         msg.gripping_force = 30
-        msg.contact_detection_sesitivity = 80
+        msg.contact_sensitivity = 80
         msg.target_current = [100, 200, 300, 400]
         self.gripper_control_publisher.publish(msg)
         self.get_logger().info(f'Publishing GripperControl message.')
@@ -85,41 +100,41 @@ class GripperClient(Node):
         except Exception as e:
             self.get_logger().error(f'ResetAbsEncoder service call failed: {e}')
 
-    def call_set_target_width(self, finger_target_width, finger_width_speed, gripping_force, contact_detection_sesitivity):
-        while not self.set_target_width_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('SetTargetWidth service not available, waiting again...')
+    def call_set_target_finger_width(self, finger_width, finger_width_speed, gripping_force, contact_sensitivity):
+        while not self.set_target_finger_width_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('SetTargetFingerWidth service not available, waiting again...')
 
-        request = SetTargetWidth.Request()
-        request.finger_target_width = finger_target_width
+        request = SetTargetFingerWidth.Request()
+        request.finger_width = finger_width
         request.finger_width_speed = finger_width_speed
         request.gripping_force = gripping_force
-        request.contact_detection_sesitivity = contact_detection_sesitivity
-        self.future = self.set_target_width_client.call_async(request)
-        self.future.add_done_callback(self.set_target_width_callback)
+        request.contact_sensitivity = contact_sensitivity
+        self.future = self.set_target_finger_width_client.call_async(request)
+        self.future.add_done_callback(self.set_target_finger_width_callback)
 
-    def set_target_width_callback(self, future):
+    def set_target_finger_width_callback(self, future):
         try:
             response = future.result()
-            self.get_logger().info(f'SetTargetWidth service call result: {response.result}')
+            self.get_logger().info(f'SetTargetFingerWidth service call result: {response.result}')
         except Exception as e:
-            self.get_logger().error(f'SetTargetWidth service call failed: {e}')
+            self.get_logger().error(f'SetTargetFingerWidth service call failed: {e}')
 
-    def call_set_target_pose(self, finger_target_pose, finger_pose_speed):
-        while not self.set_target_pose_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('SetTargetPose service not available, waiting again...')
+    def call_set_target_finger_pose(self, finger_pose, finger_pose_speed):
+        while not self.set_target_finger_pose_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('SetTargetFingerPose service not available, waiting again...')
 
-        request = SetTargetPose.Request()
-        request.finger_target_pose = finger_target_pose
+        request = SetTargetFingerPose.Request()
+        request.finger_pose = finger_pose
         request.finger_pose_speed = finger_pose_speed
-        self.future = self.set_target_pose_client.call_async(request)
-        self.future.add_done_callback(self.set_target_pose_callback)
+        self.future = self.set_target_finger_pose_client.call_async(request)
+        self.future.add_done_callback(self.set_target_finger_pose_callback)
 
-    def set_target_pose_callback(self, future):
+    def set_target_finger_pose_callback(self, future):
         try:
             response = future.result()
-            self.get_logger().info(f'SetTargetPose service call result: {response.result}')
+            self.get_logger().info(f'SetTargetFingerPose service call result: {response.result}')
         except Exception as e:
-            self.get_logger().error(f'SetTargetPose service call failed: {e}')
+            self.get_logger().error(f'SetTargetFingerPose service call failed: {e}')
 
     def call_set_target_current(self, target_current):
         while not self.set_target_current_client.wait_for_service(timeout_sec=1.0):
@@ -137,17 +152,17 @@ class GripperClient(Node):
         except Exception as e:
             self.get_logger().error(f'SetTargetCurrent service call failed: {e}')
 
-    def call_set_target(self, finger_target_width, finger_target_pose, finger_width_speed, finger_pose_speed, gripping_force, contact_detection_sesitivity):
+    def call_set_target(self, finger_width, finger_pose, finger_width_speed, finger_pose_speed, gripping_force, contact_sensitivity):
         while not self.set_target_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('SetTarget service not available, waiting again...')
 
         request = SetTarget.Request()
-        request.finger_target_width = finger_target_width
-        request.finger_target_pose = finger_target_pose
+        request.finger_width = finger_width
+        request.finger_pose = finger_pose
         request.finger_width_speed = finger_width_speed
         request.finger_pose_speed = finger_pose_speed
         request.gripping_force = gripping_force
-        request.contact_detection_sesitivity = contact_detection_sesitivity
+        request.contact_sensitivity = contact_sensitivity
         self.future = self.set_target_client.call_async(request)
         self.future.add_done_callback(self.set_target_callback)
 
@@ -187,6 +202,104 @@ class GripperClient(Node):
             self.get_logger().info(f'GetGripperInfo service call result: Name={response.info.name}, Version={response.info.version}, Description={response.info.description}')
         except Exception as e:
             self.get_logger().error(f'GetGripperInfo service call failed: {e}')
+
+    def call_set_contact_sensitivity(self, sensitivity):
+        while not self.set_contact_sensitivity_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('SetContactSensitivity service not available, waiting again...')
+
+        request = SetContactSensitivity.Request()
+        request.sesitivity = sensitivity
+        self.future = self.set_contact_sensitivity_client.call_async(request)
+        self.future.add_done_callback(self.set_contact_sensitivity_callback)
+
+    def set_contact_sensitivity_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'SetContactSensitivity service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'SetContactSensitivity service call failed: {e}')
+
+    def call_set_gripping_force(self, force):
+        while not self.set_gripping_force_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('SetGrippingForce service not available, waiting again...')
+
+        request = SetGrippingForce.Request()
+        request.gripping_force = force
+        self.future = self.set_gripping_force_client.call_async(request)
+        self.future.add_done_callback(self.set_gripping_force_callback)
+
+    def set_gripping_force_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'SetGrippingForce service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'SetGrippingForce service call failed: {e}')
+
+    def call_set_target_finger_pose_speed(self, speed):
+        while not self.set_target_finger_pose_speed_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('SetTargetFingerPoseSpeed service not available, waiting again...')
+
+        request = SetTargetFingerPoseSpeed.Request()
+        request.finger_pose_speed = speed
+        self.future = self.set_target_finger_pose_speed_client.call_async(request)
+        self.future.add_done_callback(self.set_target_finger_pose_speed_callback)
+
+    def set_target_finger_pose_speed_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'SetTargetFingerPoseSpeed service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'SetTargetFingerPoseSpeed service call failed: {e}')
+
+    def call_set_target_finger_pose_with_speed(self, pose, speed):
+        while not self.set_target_finger_pose_with_speed_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('SetTargetFingerPoseWithSpeed service not available, waiting again...')
+
+        request = SetTargetFingerPoseWithSpeed.Request()
+        request.finger_pose = pose
+        request.finger_pose_speed = speed
+        self.future = self.set_target_finger_pose_with_speed_client.call_async(request)
+        self.future.add_done_callback(self.set_target_finger_pose_with_speed_callback)
+
+    def set_target_finger_pose_with_speed_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'SetTargetFingerPoseWithSpeed service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'SetTargetFingerPoseWithSpeed service call failed: {e}')
+
+    def call_set_target_finger_width_speed(self, speed):
+        while not self.set_target_finger_width_speed_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('SetTargetFingerWidthSpeed service not available, waiting again...')
+
+        request = SetTargetFingerWidthSpeed.Request()
+        request.finger_width_speed = speed
+        self.future = self.set_target_finger_width_speed_client.call_async(request)
+        self.future.add_done_callback(self.set_target_finger_width_speed_callback)
+
+    def set_target_finger_width_speed_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'SetTargetFingerWidthSpeed service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'SetTargetFingerWidthSpeed service call failed: {e}')
+
+    def call_set_target_finger_width_with_speed(self, width, speed):
+        while not self.set_target_finger_width_with_speed_client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('SetTargetFingerWidthWithSpeed service not available, waiting again...')
+
+        request = SetTargetFingerWidthWithSpeed.Request()
+        request.finger_width = width
+        request.finger_width_speed = speed
+        self.future = self.set_target_finger_width_with_speed_client.call_async(request)
+        self.future.add_done_callback(self.set_target_finger_width_with_speed_callback)
+
+    def set_target_finger_width_with_speed_callback(self, future):
+        try:
+            response = future.result()
+            self.get_logger().info(f'SetTargetFingerWidthWithSpeed service call result: {response.result}')
+        except Exception as e:
+            self.get_logger().error(f'SetTargetFingerWidthWithSpeed service call failed: {e}')
 
 def main(args=None):
     rclpy.init(args=args)

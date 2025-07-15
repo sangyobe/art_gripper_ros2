@@ -12,7 +12,8 @@
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
   <depend>art_gripper_interfaces</depend>
-
+  <depend>EtherLab::ethercat</depend>
+  
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
