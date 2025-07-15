@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     if (initThread(g_sys_data.get())) goto error;
 
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<GripperEcat>(g_robot_data));
+    rclcpp::spin(std::make_shared<GripperEcat>(g_sys_data));
     rclcpp::shutdown();
 
      goto exitSuccess;

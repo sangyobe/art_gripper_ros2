@@ -19,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/GripperControl.msg"
   "msg/GripperStatus.msg"
   "msg/GripperInfo.msg"
+  "msg/EthercatState.msg"
   "srv/MotorOn.srv"
   "srv/ResetAbsEncoder.srv"
   "srv/SetContactSensitivity.srv"

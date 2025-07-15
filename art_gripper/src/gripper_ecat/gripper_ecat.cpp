@@ -5,12 +5,13 @@ using namespace std::chrono_literals;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-GripperEcat::GripperEcat(std::shared_ptr<RobotData> robot_data)
-: Node("gripper_ecat_driver"), _robot_data(robot_data), _is_running(true)
+GripperEcat::GripperEcat(std::shared_ptr<SysData> sys_data)
+: Node("gripper_ecat_driver"), _sys_data(sys_data), _robot_data(sys_data->robotData)
 {
-    // Declare and get parameter for publish rate
-    this->declare_parameter<int>("status_publish_rate_hz", 100);
-    int publish_rate_hz = this->get_parameter("status_publish_rate_hz").as_int();
+    this->declare_parameter<int>("gripper_status_publish_rate_hz", 100);
+    this->declare_parameter<int>("ethercat_state_publish_rate_hz", 100);
+    int gripper_status_publish_rate_hz = this->get_parameter("gripper_status_publish_rate_hz").as_int();
+    int ethercat_state_publish_rate_hz = this->get_parameter("ethercat_state_publish_rate_hz").as_int();
 
     _gripper_control_subscriber = this->create_subscription<art_gripper_interfaces::msg::GripperControl>(
         "gripper_control", 10, std::bind(&GripperEcat::OnGripperControl, this, _1));
@@ -58,17 +59,21 @@ GripperEcat::GripperEcat(std::shared_ptr<RobotData> robot_data)
         "set_target_finger_width_with_speed", std::bind(&GripperEcat::OnSetTargetFingerWidthWithSpeed, this, _1, _2));
 
     _status_publisher = this->create_publisher<art_gripper_interfaces::msg::GripperStatus>("gripper_status", 10);
+    _ethercat_state_publisher = this->create_publisher<art_gripper_interfaces::msg::EthercatState>("ethercat_state", 10);
 
-    _status_thread = std::thread(&GripperEcat::StatusPublishThread, this);
-    RCLCPP_INFO(this->get_logger(), "GripperEcat node has been initialized with a status publish rate of %d Hz.", publish_rate_hz);
+    _gripper_status_publish_timer = this->create_wall_timer(
+        std::chrono::milliseconds(1000 / gripper_status_publish_rate_hz),
+        std::bind(&GripperEcat::GripperStatusPublishCallback, this));
+
+    _ethercat_state_publish_timer = this->create_wall_timer(
+        std::chrono::milliseconds(1000 / ethercat_state_publish_rate_hz),
+        std::bind(&GripperEcat::EthercatStatePublishCallback, this));
+
+    RCLCPP_INFO(this->get_logger(), "GripperEcat node has been initialized.");
 }
 
 GripperEcat::~GripperEcat()
 {
-    _is_running = false;
-    if (_status_thread.joinable()) {
-        _status_thread.join();
-    }
 }
 
 void GripperEcat::OnGripperControl(const art_gripper_interfaces::msg::GripperControl::SharedPtr msg)
@@ -251,27 +256,35 @@ void GripperEcat::OnSetTargetFingerWidthWithSpeed(
     response->result = 0;
 }
 
-void GripperEcat::StatusPublishThread()
+void GripperEcat::GripperStatusPublishCallback()
 {
-    int publish_rate_hz = this->get_parameter("status_publish_rate_hz").as_int();
-    rclcpp::Rate rate(publish_rate_hz);
-
-    while (rclcpp::ok() && _is_running)
+    auto msg = art_gripper_interfaces::msg::GripperStatus();
     {
-        auto msg = art_gripper_interfaces::msg::GripperStatus();
-        {
-            std::lock_guard<std::mutex> lock(_robot_data->mtx);
-            // Copy data from the custom GripperStatus to the ROS message
-            msg.gripper_status = _robot_data->status.gripper_status;
-            msg.finger_width = _robot_data->status.finger_width;
-            msg.finger_pose = _robot_data->status.finger_pose;
-            msg.status_word = _robot_data->status.status_word;
-            msg.position = _robot_data->status.position;
-            msg.position_auxiliary = _robot_data->status.position_auxiliary;
-            msg.velocity = _robot_data->status.velocity;
-            msg.current = _robot_data->status.current;
-        }
-        _status_publisher->publish(msg);
-        rate.sleep();
+        std::lock_guard<std::mutex> lock(_robot_data->mtx);
+        // Copy data from the custom GripperStatus to the ROS message
+        msg.gripper_status = _robot_data->status.gripper_status;
+        msg.finger_width = _robot_data->status.finger_width;
+        msg.finger_pose = _robot_data->status.finger_pose;
+        msg.status_word = _robot_data->status.status_word;
+        msg.position = _robot_data->status.position;
+        msg.position_auxiliary = _robot_data->status.position_auxiliary;
+        msg.velocity = _robot_data->status.velocity;
+        msg.current = _robot_data->status.current;
     }
+    _status_publisher->publish(msg);
+}
+
+void GripperEcat::EthercatStatePublishCallback()
+{
+    auto ethercat_msg = art_gripper_interfaces::msg::EthercatState();
+    {
+        // std::lock_guard<std::mutex> lock(_sys_data->mtx);
+        ethercat_msg.slaves_responding = _sys_data->ecMasterState->slaves_responding;
+        ethercat_msg.al_states = _sys_data->ecMasterState->al_states;
+        ethercat_msg.link_up = _sys_data->ecMasterState->link_up;
+        ethercat_msg.working_counter = _sys_data->ecDomainState->working_counter;
+        ethercat_msg.wc_state = _sys_data->ecDomainState->wc_state;
+        ethercat_msg.redundancy_active = _sys_data->ecDomainState->redundancy_active;
+    }
+    _ethercat_state_publisher->publish(ethercat_msg);
 }

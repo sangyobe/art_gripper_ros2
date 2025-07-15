@@ -8,6 +8,7 @@
 #include "art_gripper_interfaces/msg/gripper_info.hpp"
 #include "art_gripper_interfaces/msg/gripper_control.hpp"
 #include "art_gripper_interfaces/msg/gripper_status.hpp"
+#include "art_gripper_interfaces/msg/ethercat_state.hpp"
 #include "art_gripper_interfaces/srv/get_gripper_info.hpp"
 #include "art_gripper_interfaces/srv/motor_on.hpp"
 #include "art_gripper_interfaces/srv/reset_abs_encoder.hpp"
@@ -22,12 +23,12 @@
 #include "art_gripper_interfaces/srv/set_target_finger_pose_with_speed.hpp"
 #include "art_gripper_interfaces/srv/set_target_finger_width_speed.hpp"
 #include "art_gripper_interfaces/srv/set_target_finger_width_with_speed.hpp"
-#include "robotData.h"
+#include "sysData.h"
 
 class GripperEcat : public rclcpp::Node
 {
 public:
-    GripperEcat(std::shared_ptr<RobotData> robot_data);
+    GripperEcat(std::shared_ptr<SysData> sys_data);
     ~GripperEcat();
 
 private:
@@ -75,7 +76,8 @@ private:
         const std::shared_ptr<art_gripper_interfaces::srv::SetTargetFingerWidthWithSpeed::Request> request,
         std::shared_ptr<art_gripper_interfaces::srv::SetTargetFingerWidthWithSpeed::Response> response);
 
-    void StatusPublishThread();
+    void GripperStatusPublishCallback();
+    void EthercatStatePublishCallback();
 
     rclcpp::Subscription<art_gripper_interfaces::msg::GripperControl>::SharedPtr _gripper_control_subscriber;
     rclcpp::Service<art_gripper_interfaces::srv::MotorOn>::SharedPtr _motor_on_server;
@@ -93,10 +95,12 @@ private:
     rclcpp::Service<art_gripper_interfaces::srv::SetTargetFingerWidthSpeed>::SharedPtr _set_target_finger_width_speed_server;
     rclcpp::Service<art_gripper_interfaces::srv::SetTargetFingerWidthWithSpeed>::SharedPtr _set_target_finger_width_with_speed_server;
     rclcpp::Publisher<art_gripper_interfaces::msg::GripperStatus>::SharedPtr _status_publisher;
+    rclcpp::Publisher<art_gripper_interfaces::msg::EthercatState>::SharedPtr _ethercat_state_publisher;
+    rclcpp::TimerBase::SharedPtr _gripper_status_publish_timer;
+    rclcpp::TimerBase::SharedPtr _ethercat_state_publish_timer;
 
+    std::shared_ptr<SysData> _sys_data;
     std::shared_ptr<RobotData> _robot_data;
-    std::thread _status_thread;
-    std::atomic<bool> _is_running;
 };
 
 #endif // __GRIPPER_ECAT_H__
