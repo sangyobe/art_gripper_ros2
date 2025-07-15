@@ -105,7 +105,7 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetGrippingForce art_gripper_interfaces/srv/SetGrippingForce "{'gripping_force': 50}"
+  ros2 service call /SetGrippingForce art_gripper_interfaces/srv/SetGrippingForce "{'gripping_force': 30}"
   ```
 
 ### **7. `SetTarget`**
@@ -142,7 +142,7 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetTargetCurrent art_gripper_interfaces/srv/SetTargetCurrent "{'target_current': [100, 100, 100, 100]}"
+  ros2 service call /SetTargetCurrent art_gripper_interfaces/srv/SetTargetCurrent "{'target_current': [10, 10, 10, 10]}"
   ```
 
 ### **9. `SetTargetFingerPose`**
@@ -158,7 +158,14 @@
 
 - **샘플 명령:**
   ```bash
+  # Grasp
+  ros2 service call /SetTargetFingerPose art_gripper_interfaces/srv/SetTargetFingerPose "{'finger_pose': 0}"
+
+  # 3-finger
   ros2 service call /SetTargetFingerPose art_gripper_interfaces/srv/SetTargetFingerPose "{'finger_pose': 90}"
+
+  # 2-finger
+  ros2 service call /SetTargetFingerPose art_gripper_interfaces/srv/SetTargetFingerPose "{'finger_pose': 180}"
   ```
 
 ### **10. `SetTargetFingerPoseSpeed`**
@@ -207,7 +214,11 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetTargetFingerWidth art_gripper_interfaces/srv/SetTargetFingerWidth "{'finger_width': 50}"
+  # Grasp
+  ros2 service call /SetTargetFingerWidth art_gripper_interfaces/srv/SetTargetFingerWidth "{'finger_width': 0}"
+
+  # Open
+  ros2 service call /SetTargetFingerWidth art_gripper_interfaces/srv/SetTargetFingerWidth "{'finger_width': 100}"
   ```
 
 ### **13. `SetTargetFingerWidthSpeed`**
