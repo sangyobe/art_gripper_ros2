@@ -6,7 +6,7 @@
 #define VID_NETX 0xE0000044
 #define PID_NETX 0x0000003D
 
-#define GRIPPER_OBJ_CONTROLWORD 0x2000            // Control mode (UNSIGNED8)
+#define GRIPPER_OBJ_GRIPPER_CONTROL 0x2000        // Gripper control (UNSIGNED8)
 #define GRIPPER_OBJ_TARGET_WIDTH 0x2001           // Target width in mm (UNSIGNED8)
 #define GRIPPER_OBJ_TARGET_POSE 0x2002            // Target pose in deg (UNSIGNED8)
 #define GRIPPER_OBJ_SPEED_WIDTH 0x2003            // Gripping speed in mm/s (UNSIGNED8)
@@ -14,7 +14,7 @@
 #define GRIPPER_OBJ_FORCE 0x2005                  // Gripping force in N (UNSIGNED8)
 #define GRIPPER_OBJ_CONTACT_SENSITIVITY 0x2006    // Contact detection level (UNSIGNED8)
 #define GRIPPER_OBJ_TARGET_CURRENT 0x2100         // Target current 1~4 (INTEGER16)
-#define GRIPPER_OBJ_STATUS 0x3000                 // Control status (UNSIGNED8)
+#define GRIPPER_OBJ_GRIPPER_STATUS 0x3000         // Gripper status (UNSIGNED8)
 #define GRIPPER_OBJ_ACTUAL_WIDTH 0x3001           // Current width in mm (UNSIGNED8)
 #define GRIPPER_OBJ_ACTUAL_POSE 0x3002            // Current pose in deg (UNSIGNED8)
 #define GRIPPER_OBJ_STATUSWORD 0x3100             // Statusword 1~4 (UNSIGNED16)
