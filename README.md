@@ -1,4 +1,35 @@
-## **ART Gripper ROS 서비스 문서**
+# ART Gripper ROS Package
+
+## Colcon Build Instructions
+
+To build this package using colcon, navigate to the root of your workspace (`gripper_ws`) and run the following command:
+
+```bash
+colcon build --packages-select art_gripper
+```
+
+After building, source your workspace to make the ROS 2 packages available:
+
+```bash
+source install/setup.bash
+```
+
+## Running the `gripper_ecat` Node
+
+To run the `gripper_ecat` node, use the following command:
+
+```bash
+ros2 run art_gripper gripper_ecat --ros-args -p gripper_status_publish_rate_hz:=<rate_in_hz> -p ethercat_state_publish_rate_hz:=<rate_in_hz>
+```
+
+**Arguments:**
+
+*   `gripper_status_publish_rate_hz`: Frequency (in Hz) at which gripper status messages are published. Default is 100.
+*   `ethercat_state_publish_rate_hz`: Frequency (in Hz) at which EtherCAT state messages are published. Default is 100.
+
+---
+
+## **ART Gripper ROS 서비스**
 
 이 문서는 `art_gripper` 패키지에서 제공하고 사용하는 ROS 서비스들에 대한 명세를 다룹니다.
 
@@ -17,24 +48,31 @@
 
 그리퍼의 기본 정보를 요청합니다.
 
-- **서비스 이름:** `/GetGripperInfo`
+- **서비스 이름:** `/get_gripper_info`
 - **서비스 타입:** `art_gripper_interfaces/srv/GetGripperInfo`
 - **요청 (Request):** 없음
 - **응답 (Response)**
   | 필드명 | 타입 | 설명 |
   | --- | --- | --- |
-  | `info` | `art_gripper_interfaces/msg/GripperInfo` | 그리퍼 정보 (이름, 버전, 설명) | 
+  | `info` | `art_gripper_interfaces/msg/GripperInfo` | 그리퍼 정보 |
+
+  GripperInfo
+  | 필드명 | 타입 | 설명 |
+  | --- | --- | --- |
+  | `name` | `string` | 그리퍼 이름 |
+  | `version` | `string` | 그리퍼 펌웨어 버전 |
+  | `description` | `string` | 그리퍼 설명 | 
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /GetGripperInfo art_gripper_interfaces/srv/GetGripperInfo
+  ros2 service call /get_gripper_info art_gripper_interfaces/srv/GetGripperInfo
   ```
 
 ### **2. `MotorOn`**
 
 그리퍼의 모터를 켜거나 끕니다.
 
-- **서비스 이름:** `/MotorOn`
+- **서비스 이름:** `/motor_on`
 - **서비스 타입:** `art_gripper_interfaces/srv/MotorOn`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -44,43 +82,43 @@
 - **샘플 명령:**
   ```bash
   # 모터 켜기
-  ros2 service call /MotorOn art_gripper_interfaces/srv/MotorOn "{'on': 1}"
+  ros2 service call /motor_on art_gripper_interfaces/srv/MotorOn "{'on': 1}"
 
   # 모터 끄기
-  ros2 service call /MotorOn art_gripper_interfaces/srv/MotorOn "{'on': 0}"
+  ros2 service call /motor_on art_gripper_interfaces/srv/MotorOn "{'on': 0}"
   ```
 
 ### **3. `ResetAbsEncoder`**
 
 절대 엔코더를 리셋합니다.
 
-- **서비스 이름:** `/ResetAbsEncoder`
+- **서비스 이름:** `/reset_abs_encoder`
 - **서비스 타입:** `art_gripper_interfaces/srv/ResetAbsEncoder`
 - **요청 (Request):** 없음
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /ResetAbsEncoder art_gripper_interfaces/srv/ResetAbsEncoder
+  ros2 service call /reset_abs_encoder art_gripper_interfaces/srv/ResetAbsEncoder
   ```
 
 ### **4. `ResetFrictionModel`**
 
 마찰 모델을 리셋합니다.
 
-- **서비스 이름:** `/ResetFrictionModel`
+- **서비스 이름:** `/reset_friction_model`
 - **서비스 타입:** `art_gripper_interfaces/srv/ResetFrictionModel`
 - **요청 (Request):** 없음
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /ResetFrictionModel art_gripper_interfaces/srv/ResetFrictionModel
+  ros2 service call /reset_friction_model art_gripper_interfaces/srv/ResetFrictionModel
   ```
 
 ### **5. `SetContactSensitivity`**
 
 그리퍼의 접촉 감도를 설정합니다.
 
-- **서비스 이름:** `/SetContactSensitivity`
+- **서비스 이름:** `/set_contact_sensitivity`
 - **서비스 타입:** `art_gripper_interfaces/srv/SetContactSensitivity`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -89,14 +127,14 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetContactSensitivity art_gripper_interfaces/srv/SetContactSensitivity "{'contact_sensitivity': 80}"
+  ros2 service call /set_contact_sensitivity art_gripper_interfaces/srv/SetContactSensitivity "{'contact_sensitivity': 80}"
   ```
 
 ### **6. `SetGrippingForce`**
 
 그리퍼가 물체를 잡는 힘(악력)을 설정합니다.
 
-- **서비스 이름:** `/SetGrippingForce`
+- **서비스 이름:** `/set_gripping_force`
 - **서비스 타입:** `art_gripper_interfaces/srv/SetGrippingForce`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -105,14 +143,14 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetGrippingForce art_gripper_interfaces/srv/SetGrippingForce "{'gripping_force': 30}"
+  ros2 service call /set_gripping_force art_gripper_interfaces/srv/SetGrippingForce "{'gripping_force': 30}"s
   ```
 
 ### **7. `SetTarget`**
 
 그리퍼의 여러 파라미터를 한번에 설정합니다.
 
-- **서비스 이름:** `/SetTarget`
+- **서비스 이름:** `/set_target`
 - **서비스 타입:** `art_gripper_interfaces/srv/SetTarget`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -126,14 +164,14 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetTarget art_gripper_interfaces/srv/SetTarget "{'finger_width': 50, 'finger_pose': 90, 'finger_width_speed': 100, 'finger_pose_speed': 150, 'gripping_force': 40, 'contact_sensitivity': 70}"
+  ros2 service call /set_target art_gripper_interfaces/srv/SetTarget "{'finger_width': 50, 'finger_pose': 90, 'finger_width_speed': 100, 'finger_pose_speed': 150, 'gripping_force': 40, 'contact_sensitivity': 70}"
   ```
 
 ### **8. `SetTargetCurrent`**
 
 각 모터의 목표 전류를 설정합니다.
 
-- **서비스 이름:** `/SetTargetCurrent`
+- **서비스 이름:** `/set_target_current`
 - **서비스 타입:** `art_gripper_interfaces/srv/SetTargetCurrent`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -142,14 +180,14 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetTargetCurrent art_gripper_interfaces/srv/SetTargetCurrent "{'target_current': [10, 10, 10, 10]}"
+  ros2 service call /set_target_current art_gripper_interfaces/srv/SetTargetCurrent "{'target_current': [10, 10, 10, 10]}"
   ```
 
 ### **9. `SetTargetFingerPose`**
 
 목표 핑거 회전 각도를 설정합니다.
 
-- **서비스 이름:** `/SetTargetFingerPose`
+- **서비스 이름:** `/set_target_finger_pose`
 - **서비스 타입:** `art_gripper_interfaces/srv/SetTargetFingerPose`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -159,20 +197,20 @@
 - **샘플 명령:**
   ```bash
   # Grasp
-  ros2 service call /SetTargetFingerPose art_gripper_interfaces/srv/SetTargetFingerPose "{'finger_pose': 0}"
+  ros2 service call /set_target_finger_pose art_gripper_interfaces/srv/SetTargetFingerPose "{'finger_pose': 0}"
 
   # 3-finger
-  ros2 service call /SetTargetFingerPose art_gripper_interfaces/srv/SetTargetFingerPose "{'finger_pose': 90}"
+  ros2 service call /set_target_finger_pose art_gripper_interfaces/srv/SetTargetFingerPose "{'finger_pose': 90}"
 
   # 2-finger
-  ros2 service call /SetTargetFingerPose art_gripper_interfaces/srv/SetTargetFingerPose "{'finger_pose': 180}"
+  ros2 service call /set_target_finger_pose art_gripper_interfaces/srv/SetTargetFingerPose "{'finger_pose': 180}"
   ```
 
 ### **10. `SetTargetFingerPoseSpeed`**
 
 핑거의 회전(Pose) 속도를 설정합니다.
 
-- **서비스 이름:** `/SetTargetFingerPoseSpeed`
+- **서비스 이름:** `/set_target_finger_pose_speed`
 - **서비스 타입:** `art_gripper_interfaces/srv/SetTargetFingerPoseSpeed`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -181,14 +219,14 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetTargetFingerPoseSpeed art_gripper_interfaces/srv/SetTargetFingerPoseSpeed "{'finger_pose_speed': 100}"
+  ros2 service call /set_target_finger_pose_speed art_gripper_interfaces/srv/SetTargetFingerPoseSpeed "{'finger_pose_speed': 100}"
   ```
 
 ### **11. `SetTargetFingerPoseWithSpeed`**
 
 목표 핑거 회전 각도와 속도를 함께 설정하여 즉시 이동시킵니다.
 
-- **서비스 이름:** `/SetTargetFingerPoseWithSpeed`
+- **서비스 이름:** `/set_target_finger_pose_with_speed`
 - **서비스 타입:** `art_gripper_interfaces/srv/SetTargetFingerPoseWithSpeed`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -198,14 +236,14 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetTargetFingerPoseWithSpeed art_gripper_interfaces/srv/SetTargetFingerPoseWithSpeed "{'finger_pose': 90, 'finger_pose_speed': 100}"
+  ros2 service call /set_target_finger_pose_with_speed art_gripper_interfaces/srv/SetTargetFingerPoseWithSpeed "{'finger_pose': 90, 'finger_pose_speed': 100}"
   ```
 
 ### **12. `SetTargetFingerWidth`**
 
 목표 핑거 너비를 설정합니다.
 
-- **서비스 이름:** `/SetTargetFingerWidth`
+- **서비스 이름:** `/set_target_finger_width`
 - **서비스 타입:** `art_gripper_interfaces/srv/SetTargetFingerWidth`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -215,17 +253,17 @@
 - **샘플 명령:**
   ```bash
   # Grasp
-  ros2 service call /SetTargetFingerWidth art_gripper_interfaces/srv/SetTargetFingerWidth "{'finger_width': 0}"
+  ros2 service call /set_target_finger_width art_gripper_interfaces/srv/SetTargetFingerWidth "{'finger_width': 0}"
 
   # Open
-  ros2 service call /SetTargetFingerWidth art_gripper_interfaces/srv/SetTargetFingerWidth "{'finger_width': 100}"
+  ros2 service call /set_target_finger_width art_gripper_interfaces/srv/SetTargetFingerWidth "{'finger_width': 100}"
   ```
 
 ### **13. `SetTargetFingerWidthSpeed`**
 
 그리퍼 핑거의 개폐(Width) 속도를 설정합니다.
 
-- **서비스 이름:** `/SetTargetFingerWidthSpeed`
+- **서비스 이름:** `/set_target_finger_width_speed`
 - **서비스 타입:** `art_gripper_interfaces/srv/SetTargetFingerWidthSpeed`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -234,14 +272,14 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetTargetFingerWidthSpeed art_gripper_interfaces/srv/SetTargetFingerWidthSpeed "{'finger_width_speed': 100}"
+  ros2 service call /set_target_finger_width_speed art_gripper_interfaces/srv/SetTargetFingerWidthSpeed "{'finger_width_speed': 100}"
   ```
 
 ### **14. `SetTargetFingerWidthWithSpeed`**
 
 목표 핑거 개폐 너비와 속도를 함께 설정하여 즉시 이동시킵니다.
 
-- **서비스 이름:** `/SetTargetFingerWidthWithSpeed`
+- **서비스 이름:** `/set_target_finger_width_with_speed`
 - **서비스 타입:** `art_gripper_interfaces/srv/SetTargetFingerWidthWithSpeed`
 - **요청 (Request)**
   | 필드명 | 타입 | 설명 |
@@ -251,14 +289,14 @@
 
 - **샘플 명령:**
   ```bash
-  ros2 service call /SetTargetFingerWidthWithSpeed art_gripper_interfaces/srv/SetTargetFingerWidthWithSpeed "{'finger_width': 50, 'finger_width_speed': 100}"
+  ros2 service call /set_target_finger_width_with_speed art_gripper_interfaces/srv/SetTargetFingerWidthWithSpeed "{'finger_width': 50, 'finger_width_speed': 100}"
   ```
 
 ---
 
-### **ROS Publishers**
+## **ROS Publishers**
 
-#### **1. `GripperStatus`**
+### **1. `GripperStatus`**
 
 그리퍼의 현재 상태를 게시합니다.
 
@@ -276,7 +314,7 @@
 | `velocity` | `int16[4]` | 각 모터의 속도 |
 | `current` | `int16[4]` | 각 모터의 전류 |
 
-#### **2. `EthercatState`**
+### **2. `EthercatState`**
 
 EtherCAT 마스터의 상태를 게시합니다.
 
