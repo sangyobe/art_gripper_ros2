@@ -1,15 +1,16 @@
 #include "gripper_client.h"
 #include <chrono>
 #include <functional>
+#include <vector>
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
 GripperClient::GripperClient()
-: Node("gripper_client"), _working_count(0)
+: Node("gripper_client"), _working_count(0), _sequential_call_index(0)
 {
     _gripper_control_publisher = this->create_publisher<art_gripper_interfaces::msg::GripperControl>("gripper_control", 10);
-    _timer = this->create_wall_timer(1000ms, std::bind(&GripperClient::OnTimer, this));
+    _timer = this->create_wall_timer(3000ms, std::bind(&GripperClient::OnTimer, this));
     _motor_on_client = this->create_client<art_gripper_interfaces::srv::MotorOn>("motor_on");
     _reset_abs_encoder_client = this->create_client<art_gripper_interfaces::srv::ResetAbsEncoder>("reset_abs_encoder");
     _set_target_finger_width_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerWidth>("set_target_finger_width");
@@ -24,34 +25,47 @@ GripperClient::GripperClient()
     _set_target_finger_pose_with_speed_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerPoseWithSpeed>("set_target_finger_pose_with_speed");
     _set_target_finger_width_speed_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerWidthSpeed>("set_target_finger_width_speed");
     _set_target_finger_width_with_speed_client = this->create_client<art_gripper_interfaces::srv::SetTargetFingerWidthWithSpeed>("set_target_finger_width_with_speed");
+
+    // Get gripper info
+    this->CallGetGripperInfo(); 
+
+    // Populate sequential calls
+    _sequential_calls.push_back(std::bind(&GripperClient::CallMotorOn, this, true));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallResetAbsEncoder, this));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallResetFrictionModel, this));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerPoseWithSpeed, this, 180, 120));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerWidthWithSpeed, this, 0, 150));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerWidthWithSpeed, this, 100, 150));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerPoseWithSpeed, this, 90, 120));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerPoseWithSpeed, this, 0, 120));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerWidthWithSpeed, this, 0, 150));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerWidthWithSpeed, this, 100, 150));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerPoseWithSpeed, this, 90, 120));
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallSetContactSensitivity, this, 80));
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallSetGrippingForce, this, 30));
+    _sequential_calls.push_back(std::bind(&GripperClient::CallMotorOn, this, false));
+    
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerPose, this, 90));
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerPoseSpeed, this, 180));
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerWidth, this, 50));
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerWidthSpeed, this, 150));
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallSetTarget, this, 25, 45, 75, 90, 20, 60));
+
+    // _sequential_calls.push_back([this]() {
+    //     int16_t current_array[4] = {100, 200, 300, 400};
+    //     this->CallSetTargetCurrent(current_array);
+    // });
 }
 
 void GripperClient::OnTimer()
 {
-    if (_working_count % 2 == 0) {
-        this->CallMotorOn(true);
-    } else {
-        this->CallMotorOn(false);
+    // Call one function from the sequential_calls list per timer tick
+    if (!_sequential_calls.empty()) {
+        _sequential_calls[_sequential_call_index]();
+        _sequential_call_index = (_sequential_call_index + 1) % _sequential_calls.size();
     }
 
-    if (_working_count % 5 == 0) {
-        this->CallResetAbsEncoder();
-        this->CallSetTargetFingerWidth(50);
-        this->CallSetTargetFingerPose(90);
-        int16_t current_array[4] = {100, 200, 300, 400};
-        this->CallSetTargetCurrent(current_array);
-        this->CallSetTarget(25, 45, 75, 90, 20, 60);
-        this->CallSetContactSensitivity(80);
-        this->CallSetGrippingForce(30);
-        this->CallSetTargetFingerPoseSpeed(180);
-        this->CallSetTargetFingerPoseWithSpeed(90, 180);
-        this->CallSetTargetFingerWidthSpeed(150);
-        this->CallSetTargetFingerWidthWithSpeed(50, 150);
-        this->CallResetFrictionModel();
-        this->CallGetGripperInfo();
-    }
-
-    this->PublishGripperControl();
+    // this->PublishGripperControl();
 
     _working_count++;
 }

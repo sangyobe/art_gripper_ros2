@@ -100,6 +100,8 @@ private:
     rclcpp::Client<art_gripper_interfaces::srv::SetTargetFingerWidthSpeed>::SharedPtr _set_target_finger_width_speed_client;
     rclcpp::Client<art_gripper_interfaces::srv::SetTargetFingerWidthWithSpeed>::SharedPtr _set_target_finger_width_with_speed_client;
     size_t _working_count;
+    std::vector<std::function<void()>> _sequential_calls;
+    size_t _sequential_call_index;
 
 };
 

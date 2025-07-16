@@ -50,33 +50,40 @@ class GripperClient(Node):
         self.set_target_finger_width_speed_client = self.create_client(SetTargetFingerWidthSpeed, 'set_target_finger_width_speed')
         self.set_target_finger_width_with_speed_client = self.create_client(SetTargetFingerWidthWithSpeed, 'set_target_finger_width_with_speed')
 
+        # Get gripper info
+        self.call_get_gripper_info()
+
         # for periodic action
-        timer_period = 1.0
+        timer_period = 3.0
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.working_count = 0
 
+        # List of sequential calls for periodic execution
+        self.sequential_calls = [
+            lambda: self.call_motor_on(True),
+            self.call_reset_abs_encoder,
+            self.call_reset_friction_model,
+            lambda: self.call_set_target_finger_pose_with_speed(180, 120),
+            lambda: self.call_set_target_finger_width_with_speed(0, 150),
+            lambda: self.call_set_target_finger_width_with_speed(100, 150),
+            lambda: self.call_set_target_finger_pose_with_speed(90, 120),
+            lambda: self.call_set_target_finger_pose_with_speed(0, 120),
+            lambda: self.call_set_target_finger_width_with_speed(0, 150),
+            lambda: self.call_set_target_finger_width_with_speed(100, 150),
+            lambda: self.call_set_target_finger_pose_with_speed(90, 120),
+            # lambda: self.call_set_contact_sensitivity(80),
+            # lambda: self.call_set_gripping_force(30),
+            lambda: self.call_motor_on(False),
+        ]
+        self.sequential_call_index = 0
+
     def timer_callback(self):
-        if self.working_count % 2 == 0:
-            self.call_motor_on(True)
-        else:
-            self.call_motor_on(False)
+        # Call one function from the sequential_calls list per timer tick
+        if self.sequential_calls: # Ensure the list is not empty
+            self.sequential_calls[self.sequential_call_index]()
+            self.sequential_call_index = (self.sequential_call_index + 1) % len(self.sequential_calls)
 
-        if self.working_count % 5 == 0:
-            self.call_reset_abs_encoder()
-            self.call_set_target_finger_width(50, 100, 50, 80)
-            self.call_set_target_finger_pose(90, 120)
-            self.call_set_target_current([100, 200, 300, 400])
-            self.call_set_target(25, 45, 75, 90, 20, 60)
-            self.call_set_contact_sensitivity(80)
-            self.call_set_gripping_force(30)
-            self.call_set_target_finger_pose_speed(180)
-            self.call_set_target_finger_pose_with_speed(90, 180)
-            self.call_set_target_finger_width_speed(150)
-            self.call_set_target_finger_width_with_speed(50, 150)
-            self.call_reset_friction_model()
-            self.call_get_gripper_info()
-
-        self.publish_gripper_control()
+        # self.publish_gripper_control()
 
         self.working_count += 1
 
@@ -124,15 +131,12 @@ class GripperClient(Node):
         except Exception as e:
             self.get_logger().error(f'ResetAbsEncoder service call failed: {e}')
 
-    def call_set_target_finger_width(self, finger_width, finger_width_speed, gripping_force, contact_sensitivity):
+    def call_set_target_finger_width(self, finger_width):
         while not self.set_target_finger_width_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('SetTargetFingerWidth service not available, waiting again...')
 
         request = SetTargetFingerWidth.Request()
         request.finger_width = finger_width
-        request.finger_width_speed = finger_width_speed
-        request.gripping_force = gripping_force
-        request.contact_sensitivity = contact_sensitivity
         self.future = self.set_target_finger_width_client.call_async(request)
         self.future.add_done_callback(self.set_target_finger_width_callback)
 
@@ -143,13 +147,12 @@ class GripperClient(Node):
         except Exception as e:
             self.get_logger().error(f'SetTargetFingerWidth service call failed: {e}')
 
-    def call_set_target_finger_pose(self, finger_pose, finger_pose_speed):
+    def call_set_target_finger_pose(self, finger_pose):
         while not self.set_target_finger_pose_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('SetTargetFingerPose service not available, waiting again...')
 
         request = SetTargetFingerPose.Request()
         request.finger_pose = finger_pose
-        request.finger_pose_speed = finger_pose_speed
         self.future = self.set_target_finger_pose_client.call_async(request)
         self.future.add_done_callback(self.set_target_finger_pose_callback)
 
