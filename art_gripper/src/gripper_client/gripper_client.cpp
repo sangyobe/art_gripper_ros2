@@ -29,10 +29,13 @@ GripperClient::GripperClient()
     // Get gripper info
     this->CallGetGripperInfo(); 
 
+    // Motor On
+    this->CallMotorOn(true);
+
     // Populate sequential calls
-    _sequential_calls.push_back(std::bind(&GripperClient::CallMotorOn, this, true));
-    _sequential_calls.push_back(std::bind(&GripperClient::CallResetAbsEncoder, this));
-    _sequential_calls.push_back(std::bind(&GripperClient::CallResetFrictionModel, this));
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallMotorOn, this, true));
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallResetAbsEncoder, this));
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallResetFrictionModel, this));
     _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerPoseWithSpeed, this, 180, 120));
     _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerWidthWithSpeed, this, 0, 150));
     _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerWidthWithSpeed, this, 100, 150));
@@ -43,7 +46,7 @@ GripperClient::GripperClient()
     _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerPoseWithSpeed, this, 90, 120));
     // _sequential_calls.push_back(std::bind(&GripperClient::CallSetContactSensitivity, this, 80));
     // _sequential_calls.push_back(std::bind(&GripperClient::CallSetGrippingForce, this, 30));
-    _sequential_calls.push_back(std::bind(&GripperClient::CallMotorOn, this, false));
+    // _sequential_calls.push_back(std::bind(&GripperClient::CallMotorOn, this, false));
     
     // _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerPose, this, 90));
     // _sequential_calls.push_back(std::bind(&GripperClient::CallSetTargetFingerPoseSpeed, this, 180));

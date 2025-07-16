@@ -26,6 +26,16 @@ After building, source your workspace to make the ROS 2 packages available:
 source install/setup.bash
 ```
 
+## udev 설정
+
+EtherCAT 디바이스에 대한 udev 규칙을 설정하여 적절한 권한을 부여해야 합니다. 다음 명령을 실행하여 udev 규칙을 추가합니다.
+
+```bash
+echo 'KERNEL=="EtherCAT0", MODE="0666"' | sudo tee /etc/udev/rules.d/99-ethercat.rules
+```
+
+규칙 추가 후에 `sudo ethercatctl restart`를 해줘야합니다.
+
 ## Running the `gripper_ecat` Node
 
 To run the `gripper_ecat` node, use the following command:

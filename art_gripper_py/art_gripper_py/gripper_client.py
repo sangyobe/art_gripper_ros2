@@ -53,6 +53,9 @@ class GripperClient(Node):
         # Get gripper info
         self.call_get_gripper_info()
 
+        # Motor On
+        self.call_motor_on(True)
+
         # for periodic action
         timer_period = 3.0
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -60,9 +63,9 @@ class GripperClient(Node):
 
         # List of sequential calls for periodic execution
         self.sequential_calls = [
-            lambda: self.call_motor_on(True),
-            self.call_reset_abs_encoder,
-            self.call_reset_friction_model,
+            # lambda: self.call_motor_on(True),
+            # self.call_reset_abs_encoder,
+            # self.call_reset_friction_model,
             lambda: self.call_set_target_finger_pose_with_speed(180, 120),
             lambda: self.call_set_target_finger_width_with_speed(0, 150),
             lambda: self.call_set_target_finger_width_with_speed(100, 150),
@@ -73,7 +76,7 @@ class GripperClient(Node):
             lambda: self.call_set_target_finger_pose_with_speed(90, 120),
             # lambda: self.call_set_contact_sensitivity(80),
             # lambda: self.call_set_gripping_force(30),
-            lambda: self.call_motor_on(False),
+            # lambda: self.call_motor_on(False),
         ]
         self.sequential_call_index = 0
 

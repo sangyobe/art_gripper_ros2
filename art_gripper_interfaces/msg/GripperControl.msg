@@ -2,7 +2,7 @@ uint8 gripper_control
 # ----------------------------------------------------------------------------------------------------------------------
 # BIT | ACTION                 | VALUE                                                               | DESC.
 # ----------------------------------------------------------------------------------------------------------------------
-# 0   | activate motor         | 0:activate, 1:deactivate                                            |
+# 0   | activate motor         | 0:deactivate, 1:activate                                            |
 # 1   | activate target        | 0:ignore target, 1:update target                                    |
 # 2   | (n/a)                  |                                                                     |
 # 3   | (n/a)                  |                                                                     |

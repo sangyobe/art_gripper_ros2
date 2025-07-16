@@ -12,8 +12,8 @@ void *ThreadProcCtrl(void *arg)
     int Cnt = 0;
     timespec sleepTime;
 
-    sysData->ctrlTime.targetPeriod_ms = 1.0; 
-    sysData->dispTime.targetPeriod_ms = 1.0; 
+    sysData->ctrlTime.targetPeriod_ms = 10.0; 
+    sysData->dispTime.targetPeriod_ms = 10.0; 
 
     while (sysData->threadStart != 1)
     {
