@@ -83,8 +83,10 @@ public:
 
 typedef struct _robotData
 {
-    uint8_t initProcess;
-    uint16_t keyboardInput;
+    uint8_t initProcess = 0;
+    uint16_t keyboardInput = 0;
+    bool resetAbsEncoder = false;
+    bool resetFriction = false;
 
     GripperStatus status;
     GripperControl control;

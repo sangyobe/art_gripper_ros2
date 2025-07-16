@@ -115,6 +115,7 @@ void GripperEcat::OnResetAbsEncoder(
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "reset abs encoder");
     _robot_data->control.gripper_control |= GRIPPER_COMMAND::ABS_ENCODER_RESET_BIT;
+    _robot_data->resetAbsEncoder = true;
     response->result = 0;
 }
 
@@ -177,6 +178,7 @@ void GripperEcat::OnResetFrictionModel(
     std::lock_guard<std::mutex> lock(_robot_data->mtx);
     RCLCPP_INFO(this->get_logger(), "ResetFrictionModel");
     _robot_data->control.gripper_control |= GRIPPER_COMMAND::FRICTION_MODEL_ID_BIT;
+    _robot_data->resetFriction = true;
     response->result = 0;
 }
 

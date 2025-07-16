@@ -17,7 +17,7 @@ The `art_gripper` package is structured as follows:
 To build this package using colcon, navigate to the root of your workspace (`gripper_ws`) and run the following command:
 
 ```bash
-colcon build --packages-select art_gripper
+colcon build --symlink-install --packages-select art_gripper_interfaces art_gripper art_gripper_py
 ```
 
 After building, source your workspace to make the ROS 2 packages available:

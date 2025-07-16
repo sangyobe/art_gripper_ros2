@@ -37,8 +37,6 @@ void *ThreadProcCtrl(void *arg)
 
         ///////////////////////////////
         /* User Computation Function */
-        static bool resetAbsEncoder = false;
-        static bool resetFriction = false;
 
         // Initialization
         if (robotData->initProcess == 0)
@@ -72,17 +70,17 @@ void *ThreadProcCtrl(void *arg)
         }
 
         // Clear absolute encoder reset bit
-        if (resetAbsEncoder && ((robotData->status.gripper_status & GRIPPER_STATUS::READY_BIT) == 0))
+        if (robotData->resetAbsEncoder && ((robotData->status.gripper_status & GRIPPER_STATUS::READY_BIT) == 0))
         {
             robotData->control.gripper_control &= ~GRIPPER_COMMAND::ABS_ENCODER_RESET_BIT;
-            resetAbsEncoder = false;
+            robotData->resetAbsEncoder = false;
         }
 
         // Clear friction model reset bit
-        if (resetFriction && ((robotData->status.gripper_status & GRIPPER_STATUS::READY_BIT) == 0))
+        if (robotData->resetFriction && ((robotData->status.gripper_status & GRIPPER_STATUS::READY_BIT) == 0))
         {
             robotData->control.gripper_control &= ~GRIPPER_COMMAND::FRICTION_MODEL_ID_BIT;
-            resetFriction = false;
+            robotData->resetFriction = false;
         }
 
         /* End of User Computation Function */
