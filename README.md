@@ -1,5 +1,17 @@
 # ART Gripper ROS Package
 
+## Introduction
+
+## Package and Node Configuration
+
+The `art_gripper` package is structured as follows:
+
+*   **`art_gripper` (C++ Package):** Contains the core ROS 2 nodes for controlling the gripper.
+    *   **`gripper_ecat` Node:** This is the primary control node responsible for direct communication with the gripper hardware via EtherCAT. It publishes gripper status and EtherCAT state, and provides services for controlling the gripper.
+    *   **`gripper_client` Node:** A client node that demonstrates how to interact with the `gripper_ecat` node's services and topics. It can be used for testing and sending commands to the gripper.
+*   **`art_gripper_py` (Python Package):** Provides a Python interface for interacting with the gripper, including a Python client node (`gripper_client_py`) that mirrors the functionality of the C++ client.
+*   **`art_gripper_interfaces`:** Defines the custom ROS 2 messages and service types used for communication within the `art_gripper` ecosystem.
+
 ## Colcon Build Instructions
 
 To build this package using colcon, navigate to the root of your workspace (`gripper_ws`) and run the following command:
