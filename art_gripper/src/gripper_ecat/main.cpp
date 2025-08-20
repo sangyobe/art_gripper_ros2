@@ -23,15 +23,27 @@ static void CatchSignal(int sig)
     // rclcpp::shutdown();
 }
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     signal(SIGTERM, CatchSignal); // kill command
     signal(SIGINT, CatchSignal);  // keyboard interrupt, Ctrl + c
 
-    g_sys_data->robotData = g_robot_data.get();
-
     // dtTerm::SetupTerminal(false); // show cursor - false
     // dtTerm::ClearDisp();
+
+    g_sys_data->robotData = g_robot_data.get();
+    g_sys_data->ecMasterIndex = 0;
+
+    // parse command arguments
+    for (int i = 1; i < (argc - 1); ++i)
+    {
+        std::string current_arg = std::string(argv[i]);
+        if (current_arg == "-m" || current_arg == "--master")
+        {
+            g_sys_data->ecMasterIndex = atoi(argv[++i]);
+        }
+    }
+    std::cout << "EtherCAT Master Index: " << g_sys_data->ecMasterIndex << std::endl;
 
     if (initDevice(g_sys_data.get())) goto error;
     if (initThread(g_sys_data.get())) goto error;

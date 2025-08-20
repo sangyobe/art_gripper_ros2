@@ -40,6 +40,7 @@ typedef struct _systemData
     int threadStart = 0;            // thread hold and order
     int dispRestart = 0;            // terminal display restart flag
 
+    unsigned int ecMasterIndex;
     ec_master_state_t *ecMasterState;
     ec_domain_state_t *ecDomainState;
     uint8_t *pPdoList;

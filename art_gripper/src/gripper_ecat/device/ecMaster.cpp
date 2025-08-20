@@ -14,7 +14,7 @@ int8_t ecMasterInit(SysData *sysData)
 {
     fprintf(stderr, "Requesting EtherCAT master ... ");
 
-    master = ecrt_request_master(0);
+    master = ecrt_request_master(sysData->ecMasterIndex);
     if (!master)
     {
         fprintf(stderr, "error: ecrt_request_master(...)\n");
