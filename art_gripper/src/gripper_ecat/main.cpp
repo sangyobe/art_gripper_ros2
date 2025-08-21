@@ -42,6 +42,10 @@ int main(int argc, const char *argv[])
         {
             g_sys_data->ecMasterIndex = atoi(argv[++i]);
         }
+        else if (current_arg == "--ros-args")
+        {
+            break; // do not parse ros arguments
+        }
     }
     std::cout << "EtherCAT Master Index: " << g_sys_data->ecMasterIndex << std::endl;
 

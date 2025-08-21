@@ -530,7 +530,12 @@ def generate_launch_description():
 
 ```
 
-실행 후 다음과 같이 ROS2 서비스명을 확인할 수 있습니다.
+다음과 같이 ros2 launch 명령으로 실행합니다.
+```bash
+$ ros2 launch art_gripper gripper_ecat_dual.launch.py
+```
+
+실행 후 다른 터미널을 열어 다음과 같이 ROS2 서비스명을 확인할 수 있습니다.
 ```bash
 $ ros2 service list
 /ag_left/get_gripper_info
@@ -577,3 +582,15 @@ $ ros2 service list
 
 하나의 gripper node를 실행할 때와 다르게 왼손을 제어하기 위해서는 /ag_left namespace를, 오른손을 제어하기 위해서는 /ag_right namespace를 사용해야 합니다.
 
+### 테스트
+
+테스트를 위해 두개의 터미널을 열고 다음과 같이 실행합니다.
+
+터미널 1
+```bash
+$ ros2 run art_gripper gripper_client --ros-args -r __ns:=/ag_left
+```
+터미널 2
+```bash
+$ ros2 run art_gripper gripper_client --ros-args -r __ns:=/ag_right
+```
